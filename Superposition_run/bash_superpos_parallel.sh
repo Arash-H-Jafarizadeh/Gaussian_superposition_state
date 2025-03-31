@@ -5,7 +5,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=36g
+#SBATCH --mem=30g
 #SBATCH --time=0-23:33:33
 #SBATCH --output=Superposition_run/output/Aash_Sophis_Parallel_Run_%a.out
 ## #SBATCH --output=Superposition_run/output/Bash_Superpos_Parallel_Run_%j_%a.out

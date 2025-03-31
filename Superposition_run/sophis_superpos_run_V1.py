@@ -10,11 +10,11 @@ import matplotlib.colors as colors
 # from MF_function import *
 # from circuit_vqe_function import *
 
-sys.path.append('/gpfs01/home/ppzaj/python_projects/HF_Fermionic_State_Prepration/')
+sys.path.append('/gpfs01/home/ppzaj/python_projects/HF_Fermionic_State_Prepration/source_code/')
 
 # import free_fermion_function as ff
 import exact_diagonalization_function as ed
-import HF_function as hf
+import hartree_fock_function as hf
 
 
 
@@ -35,7 +35,7 @@ maxsteps = 400
     
 
 if True: #################################################################################################################### HF superposition full Hamiltonian for L's and V's
-    sizes = [16] #[8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28,30, 32]
+    sizes = [14] #[8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28,30, 32]
     VS = [0.1, 0.2, 0.3, 0.4, 0.5] # [0.5, 0.6, 0.7, 0.8, 0.9, 1.0] # 
     
     input = []

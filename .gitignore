@@ -5,6 +5,7 @@ parallel_data/
 parallel_data_2D/
 
 
+*.sh
 *.npy
 *.pdf
 *.png
