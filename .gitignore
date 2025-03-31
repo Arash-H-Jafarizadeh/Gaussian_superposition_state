@@ -1,0 +1,12 @@
+__pycache__/
+.env/
+data/
+parallel_data/
+parallel_data_2D/
+
+
+
+*.pdf
+*.png
+*.out
+
