@@ -1,5 +1,6 @@
 __pycache__/
 .env/
+.vscode/
 data/
 parallel_data/
 parallel_data_2D/
