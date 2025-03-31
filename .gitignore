@@ -5,7 +5,7 @@ parallel_data/
 parallel_data_2D/
 
 
-
+*.npy
 *.pdf
 *.png
 *.out
