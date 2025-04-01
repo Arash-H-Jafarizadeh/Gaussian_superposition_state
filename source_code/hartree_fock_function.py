@@ -274,6 +274,86 @@ def hart_fock_superposition(physical, L, **kws):
     return(new_ham, super_basis) #new_order)
 
 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~ new algorithm for superposition optimization
+
+def new_based_ham(physical, L, bond_list, u_mat, **kwargs):
+    
+    V, J = physical[:2]
+    el = len(bond_list)
+
+    new_ham = np.zeros((el,el))    
+    for indx_k, K in enumerate(bond_list):
+        for indx_q, Q in enumerate(bond_list):
+            new_ham[indx_k,indx_q] += 0.5*V*V_term(u_mat, K, Q, L, **kwargs)
+            new_ham[indx_k,indx_q] += -J*C_term(u_mat, K, Q, L, **kwargs)
+            
+    return(new_ham, bond_list)        
+        
+
+def new_hart_fock_optimization(physical, L, **kws):
+    max_iters = kws['max_iters'] if 'max_iters' in kws.keys() else 100
+    startp = kws['start_point'] if 'start_point' in kws.keys() else 0.0004567
+    
+    c_mat = np.diag([1.,0.]*(L//2) + startp * np.random.randn(L))
+    
+    last_E = np.empty((L))
+    last_U = np.empty((L,L))
+    # output_energy = []
+    for _ in range(max_iters):
+        H = HF_hamil(physical, c_mat, L, **kws)
+        last_E, last_U = np.linalg.eigh(H)
+        c_mat = np.dot(last_U[:,:L//2],np.conj(last_U[:,:L//2].T))
+        # output_energy.append( fullEnergy_HF(c_mat, physical, L, **kws) )
+
+    return(last_E, last_U)
+
+
+def new_hf_optimization(physical, L, bond_size, **kws):
+    max_steps = kws['max_steps'] if 'max_steps' in kws.keys() else 200
+    size_step = kws['size_step'] if 'size_step' in kws.keys() else 5
+    # amp_trshld = kws['amp_trshld'] if 'amp_trshld' in kws.keys() else 1.e-12
+    # output_amps = kws['return_amps'] if 'return_amps' in kws.keys() else False
+    
+    hf_E, hf_U = new_hart_fock_optimization(physical, L, **kws)
+    bond_list = ordered_basis(L, hf_E, **kws)
+    basis = bond_list[:bond_size + size_step]
+    # basis = bond_list[:bond_size]
+
+    output_amps = np.zeros((bond_size,), dtype=np.float64)
+    output_energy = []
+    step = 0
+    
+    while step < max_steps and len(bond_list) >= size_step:
+        
+        # print(f"*** step {step}")
+        ham, _ = new_based_ham(physical, L, basis, hf_U, **kws)
+        _, U = np.linalg.eigh(ham)
+        
+        amps = np.abs(U[:,0])
+        order = np.argsort(amps)[::-1] 
+        new_basis = np.array(basis)[order.astype(int)]
+
+        bond_list = np.setdiff1d(bond_list, new_basis, assume_unique=True)
+        basis = np.concatenate((new_basis[:bond_size], bond_list[:size_step]), axis=None)
+
+        ham, _ = new_based_ham(physical, L, basis[:bond_size], hf_U, **kws)
+        
+        # E = np.linalg.eigvalsh(ham)
+        
+        E, nU = np.linalg.eigh(ham)
+        output_amps = nU[:,0]
+        # N_amps = np.abs(nU[:,0])
+        # res_amps = np.floor(np.log10(N_amps))
+        
+        output_energy.append( E[0] )
+        
+        step += 1
+        
+    return(output_energy, basis[:bond_size], output_amps)
+        
+ 
+
+
 #~~~~~~~~~~~~~~~~~~~~~~~~~~ below can be removed X
          
 def shadow_ham(physical, L, energy_list, u_mat, **kwargs):

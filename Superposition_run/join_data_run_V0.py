@@ -30,18 +30,19 @@ if len(sys.argv) == 2:
 # folder_path = '/gpfs01/home/ppzaj/python_projects/HF_Fermionic_State_Prepration/Superposition_run/raw_data/'
 
 
-if False: ########################################################################### Loading the Hamiltoniand and saving Truncation, Infidality and Amps data - 19022025
+if False: ########################################################################### Loading the Hamiltoniand and saving Truncation, Infidality, Amplitudes and Distances - 20250401
     folder_path = 'Superposition_run/raw_data/'
     # all_files =  sorted( glob.glob('FulMat'+'*.npy', root_dir=folder_path) )
     # all_files2 = all_files[25:]
     
     all_files =  np.array(['FulMat__0.1_16.npy','FulMat__0.2_16.npy','FulMat__0.3_16.npy','FulMat__0.4_16.npy','FulMat__0.5_16.npy',
-                            'FulMat__0.1_26.npy','FulMat__0.2_26.npy','FulMat__0.3_26.npy','FulMat__0.4_26.npy','FulMat__0.5_26.npy',
-                           'FulMat__0.1_28.npy','FulMat__0.2_28.npy','FulMat__0.3_28.npy','FulMat__0.4_28.npy','FulMat__0.5_28.npy'])
+                            'FulMat__0.1_14.npy','FulMat__0.2_14.npy','FulMat__0.3_14.npy','FulMat__0.4_14.npy','FulMat__0.5_14.npy'
+                            # 'FulMat__0.1_28.npy','FulMat__0.2_28.npy','FulMat__0.3_28.npy','FulMat__0.4_28.npy','FulMat__0.5_28.npy'
+                           ])
     
     nome = all_files[array_number]
     
-    num_datas = 20
+    num_datas = 25
 
     Vs = float(nome[8:11])
     Ls = int(nome[12:14])
@@ -71,8 +72,8 @@ if False: ######################################################################
         if l/maxdim == 1.0:
         
             GS = vec[:,0]
-            amps = np.sort(np.abs(GS))[::-1] # np.abs(GS) # 
-            amps = amps[ amps > threshod ]
+            amps = np.abs(GS) # np.sort(np.abs(GS))[::-1] #   
+            # amps = amps[ amps > threshod ]
             print("- - Length of sorted Amps:", len(amps)," Length of Half size:", maxdim //2)
             print("")
             
@@ -103,7 +104,7 @@ if False: ######################################################################
     # print("")
     
 
-if False: ########################################################################### Read the Hamiltoniand and saving Infidality and Amps data - 19022025
+if False: ########################################################################### Read the Hamiltoniand and saving Infidality and Amplitudes and Distances data - 20250401
     Amplitude = True
     Fidality = False
     
@@ -114,7 +115,7 @@ if False: ######################################################################
     all_files =  np.array([
                             #'FulMat__0.1_08.npy','FulMat__0.2_08.npy','FulMat__0.3_08.npy','FulMat__0.4_08.npy','FulMat__0.5_08.npy',
                             #'FulMat__0.1_10.npy','FulMat__0.2_10.npy','FulMat__0.3_10.npy','FulMat__0.4_10.npy','FulMat__0.5_10.npy',
-                            'FulMat__0.1_12.npy','FulMat__0.2_12.npy','FulMat__0.3_12.npy','FulMat__0.4_12.npy','FulMat__0.5_12.npy',
+                            #'FulMat__0.1_12.npy','FulMat__0.2_12.npy','FulMat__0.3_12.npy','FulMat__0.4_12.npy','FulMat__0.5_12.npy',
                             'FulMat__0.1_14.npy','FulMat__0.2_14.npy','FulMat__0.3_14.npy','FulMat__0.4_14.npy','FulMat__0.5_14.npy',
                             'FulMat__0.1_16.npy','FulMat__0.2_16.npy','FulMat__0.3_16.npy','FulMat__0.4_16.npy','FulMat__0.5_16.npy'
                            ])
