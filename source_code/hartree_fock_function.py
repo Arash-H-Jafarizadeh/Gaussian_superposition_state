@@ -316,8 +316,8 @@ def new_hf_optimization(physical, L, bond_size, **kws):
     
     hf_E, hf_U = new_hart_fock_optimization(physical, L, **kws)
     bond_list = ordered_basis(L, hf_E, **kws)
-    basis = bond_list[:bond_size + size_step]
-    # basis = bond_list[:bond_size]
+    # basis = bond_list[:bond_size + size_step]
+    basis = bond_list[:bond_size]
 
     output_amps = np.zeros((bond_size,), dtype=np.float64)
     output_energy = []
