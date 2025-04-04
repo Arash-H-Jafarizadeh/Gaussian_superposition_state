@@ -45,7 +45,7 @@ def fullEnergy_HF(input_C, physical, L, **kwargs):
 
 def hart_fock_optimization(physical,L, **kws):
     max_iters = kws['max_iters'] if 'max_iters' in kws.keys() else 400
-    startp = kws['start_point'] if 'start_point' in kws.keys() else 0.4567
+    startp = kws['start_point'] if 'start_point' in kws.keys() else 0.0157
     
     c_mat = np.diag([1.,0.]*(L//2) + startp * np.random.randn(L))
     
@@ -254,7 +254,7 @@ def based_ham(physical, L, energy_list, u_mat, **kwargs):
 
 def hart_fock_superposition(physical, L, **kws):
     max_iters = kws['max_iters'] if 'max_iters' in kws.keys() else 200
-    startp = kws['start_point'] if 'start_point' in kws.keys() else 0.15
+    startp = kws['start_point'] if 'start_point' in kws.keys() else 0.0157
     
     c_mat = np.diag([1.,0.]*(L//2) + startp * np.random.randn(L))
     
@@ -274,7 +274,7 @@ def hart_fock_superposition(physical, L, **kws):
     return(new_ham, super_basis) #new_order)
 
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~ new algorithm for superposition optimization
+######################################################################################## new algorithm for superposition optimization
 
 def new_based_ham(physical, L, bond_list, u_mat, **kwargs):
     
@@ -292,7 +292,7 @@ def new_based_ham(physical, L, bond_list, u_mat, **kwargs):
 
 def new_hart_fock_optimization(physical, L, **kws):
     max_iters = kws['max_iters'] if 'max_iters' in kws.keys() else 100
-    startp = kws['start_point'] if 'start_point' in kws.keys() else 0.0004567
+    startp = kws['start_point'] if 'start_point' in kws.keys() else 0.0157
     
     c_mat = np.diag([1.,0.]*(L//2) + startp * np.random.randn(L))
     
@@ -323,7 +323,7 @@ def new_hf_optimization(physical, L, bond_size, **kws):
     output_energy = []
     step = 0
     
-    while step < max_steps and len(bond_list) >= size_step:
+    while step < max_steps and len(bond_list) > 0:
         
         # print(f"*** step {step}")
         ham, _ = new_based_ham(physical, L, basis, hf_U, **kws)
