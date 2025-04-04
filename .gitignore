@@ -4,7 +4,8 @@ __pycache__/
 data/
 parallel_data/
 parallel_data_2D/
-
+Superposition_run/output/
+Superposition_run/raw_data/
 
 *.sh
 *.npy
