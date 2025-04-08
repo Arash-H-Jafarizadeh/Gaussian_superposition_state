@@ -207,11 +207,11 @@ if False:#######################################################################
     fig.savefig(f"Superposition_run/output/_test_changing_step_sizes_new_method_V_{physical[0]}_L{L}_J{job_number}.pdf", bbox_inches = 'tight')
 
 
-if True:#####################################################################################################################################################
+if False:#####################################################################################################################################################
     
     Ls = 12
     physical = 0.2, 1.0 
-    ed_energy = np.load('Superposition_run/raw_data/Ground_State_Energy' + f"EDGS_{physical[0]}_{Ls:02}.npy")
+    ed_energy = np.load('Superposition_run/raw_data/Ground_State_Energy/' + f"EDGS_{physical[0]}_{Ls:02}.npy")
     
     num_datas = 20
     maxdim = sp.special.binom(Ls, Ls//2)    
@@ -270,10 +270,10 @@ if True:########################################################################
     print(f"- Full Run {array_number} Time: ", tt.time() - T_i,"(s)")
     print("")
     
-    print("- - Size of full new data:", np.shape(new_data))
+    print("- - Size of full new data:", len(new_data))
     print("")
            
-    arcivo = open(f'Superposition_run/raw_data/test/NESA_{physical[0]}_{Ls:02}.npy', 'wb') #new energy search algorithm
+    arcivo = open(f'Superposition_run/raw_data/test/BNDS_{physical[0]}_{Ls:02}.npy', 'wb') #new energy search algorithm
     np.save(arcivo, new_data)
     arcivo.close()   
     
@@ -283,6 +283,84 @@ if True:########################################################################
     
     arcivo = open(f'Superposition_run/raw_data/test/TRNC_{physical[0]}_{Ls:02}.npy', 'wb')
     np.save(arcivo, np.array([old_data, bonds]))
+    arcivo.close()
+    
+    
+    print(f"- Data files are saved")
+    print("") 
+
+if True:#####################################################################################################################################################
+    
+    Ls = 14
+    Vs, Js = 0.2, 1.0 
+    ed_energy = np.load('Superposition_run/raw_data/Ground_State_Energy/' + f"EDGS_{Vs}_{Ls:02}.npy")
+    
+    num_datas = 20
+    maxdim = sp.special.binom(Ls, Ls//2)    
+     
+    bonds = [1] + [b for b in range(150, int(maxdim), 150)] + [int(maxdim)] #np.linspace(1, maxdim, num_datas, dtype=np.int64)
+    bonds = np.array(bonds, dtype=np.int64)
+    print(f" - bonds are: {bonds}")
+    print(f"- Array bond is {bonds[array_number]}")
+    step = 100
+    
+
+    t_i = tt.time()
+    super_ham, super_basis = hf.hart_fock_superposition([Vs, Js], Ls, max_iters=maxsteps, PBC=False, start_point=1.e-4) #, basis_len = bond
+    print(f"- Full Matrix Creation Run {array_number} Time: ", tt.time() - t_i,"(s)")
+    print("")
+
+    array_dict = {}
+    # array_dict['step_size'] = step
+    COUNTS = np.zeros((Ls//2+1), dtype=np.float16)
+
+    T_i = tt.time()
+    # for indx, bond in enumerate(bonds):
+    bond = bonds[array_number]
+    array_dict['bond_size'] = bond
+    
+    t0 = tt.time()
+    print(f"- - Bond is: {bond}")
+    test_energy, test_basis, test_amps = hf.new_hf_optimization([Vs, Js], Ls, bond, size_step = step, PBC=False, max_iters = maxsteps, start_point=1.e-4)
+    print("- - Time for bond:", tt.time()-t0)
+    array_dict['new_energy'] = test_energy
+    array_dict['basis_set'] = test_basis
+    array_dict['best_amps'] = test_amps
+    
+    print("- - TESTING if bond is: ",len(test_basis))
+
+    t_i = tt.time()
+    Es, _ = np.linalg.eigh(super_ham[:bond,:bond])
+    print(f"- - Eigenvalue Time: ", tt.time() - t_i,"(s) for ", bond,"",bond/maxdim)
+    array_dict['old_energy'] = Es[0] #(Es[0] - ed_energy)/Ls
+    
+    
+    dists, counts = np.unique(hf.basis_distance(test_basis, Ls),return_counts=True)
+    # counts = (counts/np.sum(counts))*100
+    dicd = dict(zip(dists,counts))
+    for n in dists:
+        COUNTS[n] = dicd[n]
+
+    # array_dict['dstn_count'] = COUNTS
+    print(f"- - counts for bond {bond} is {COUNTS}")
+    print(f"- - amplitudes for bond {bond} is {test_amps}")
+
+    test_energy = np.abs(np.array(test_energy) - ed_energy)/Ls
+    plt.plot(test_energy, marker='o', label=f"M = {bond}")
+    plt.yscale('log')
+    plt.legend(loc='best', fontsize='small', markerscale=0.9)
+    plt.title(f"L = {Ls}, V={Vs} & |m|={step}")
+    plt.savefig(f"Superposition_run/output/mid_plots/_mid_converge_V{Vs}_L{Ls}_B{bond:04}_A{array_number:02}.pdf", bbox_inches = 'tight')
+    # end of old for loop
+    
+    print(f"- Full Run {array_number} Time: ", tt.time() - T_i,"(s)")
+    print("")
+    
+    print("- - Size of full new data:", len(test_energy))
+    print("")
+           
+    arcivo = open(f'Superposition_run/raw_data/test/DATA_{Vs}_{Ls:02}_{array_number:02}.npy', 'wb')
+    np.save(arcivo, array_dict)
     arcivo.close()
     
     

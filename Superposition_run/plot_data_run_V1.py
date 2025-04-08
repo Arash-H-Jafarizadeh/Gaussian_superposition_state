@@ -83,7 +83,7 @@ if False: ######################################################################
     print("")
     
     
-if False: ######################################################################### Ploting energy-convergence/density-convergence for fixed V and different L - 10022025
+if False: ######################################################################### Ploting energy-convergence/density-convergence for fixed V and different L - 20250210
     
     """
     This bid plots the energy convergence (also density convergence) for fixed V and different L

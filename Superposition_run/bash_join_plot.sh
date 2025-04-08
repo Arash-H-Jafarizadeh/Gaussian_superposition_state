@@ -2,14 +2,14 @@
 
 ## #SBATCH --partition=devq ## #SBATCH --qos=dev
 #SBATCH --partition=defq
-#SBATCH --array=0-9
+## #SBATCH --array=0-9
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=3
-#SBATCH --mem=30g
-#SBATCH --time=0-21:11:22
-#SBATCH --output=Superposition_run/output/Amps_JoinPlot_Run_%a.out
-## #SBATCH --output=Superposition_run/output/X_JoinPlot_Run.out ##### for test
+#SBATCH --mem=5g
+#SBATCH --time=0-00:11:22
+## #SBATCH --output=Superposition_run/output/Amps_JoinPlot_Run_%a.out
+#SBATCH --output=Superposition_run/output/X_JoinPlot_Run.out ##### for test
 ## #SBATCH --exclude=comp044
 
 	
