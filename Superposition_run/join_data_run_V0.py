@@ -168,110 +168,127 @@ if False: ######################################################################
 
 if True: ########################################################################### Read and save data from array runs - new algorithm for fixed step_size/L/V - 20250407
     
-    mid_plot = False
-    fin_plot = False
+    mid_plot = True
+    fin_plot = True
     
     folder_path = 'Superposition_run/raw_data/test/'
-    all_files =  sorted( glob.glob('DATA'+'*0.2'+'*14'+'*.npy', root_dir=folder_path) )
-    # print(all_files)
-    # print("")
     
     Vs, Ls = 0.2, 14
-    step = 100 #data_dic['step_size']
-    # threshod = 1.e-12
+    # all_files =  sorted( glob.glob('DATA'+'*0.2'+'*08'+'*.npy', root_dir=folder_path) )
+    all_files =  sorted( glob.glob(f'DATA_{Vs}_{Ls:02}'+'*.npy', root_dir=folder_path) )
+    print(all_files)
+    print("")
     
-    maxdim = sp.special.binom(Ls, Ls//2)    
-    # bonds = [1] + [b for b in range(150, int(maxdim), 150)] + [int(maxdim)] #np.linspace(1, maxdim, num_datas, dtype=np.int64)
-    # bonds = np.array(bonds, dtype=np.int64)
-    # print("size of bonds ", len(bonds))
+    maxdim = int(sp.special.binom(Ls, Ls//2))    
+    bonds = np.array( [1] + [b for b in range(150, int(maxdim), 150)] + [int(maxdim)] )#np.linspace(1, maxdim, num_datas, dtype=np.int64)
+    step = 100 
+    print("size of bonds ", len(bonds))
     
     ed_energy = np.load('Superposition_run/raw_data/Ground_State_Energy/' + f"EDGS_{Vs}_{Ls:02}.npy")
 
-    # nome = 'DATA_0.2_14_10.npy'
-    # Vs = float(nome[5:8])
-    # Ls = int(nome[9:11])
-    # print("physical is: ",Vs,", size is ",Ls)
-    # print("")
-
     if mid_plot:
         mid_fig, mid_ax = plt.subplots(1,1, figsize=(9, 7), 
-                subplot_kw=dict( 
-                    yscale = 'log', xscale ='linear',
-                    title = f"All |M| convergence for L = {Ls}, V={Vs} & |m|={step}",
-                    ylabel = r'$|\frac{E-E_{ed}}{L}|$', xlabel = r'$\#\: iterations$',
-                    # ylim = (1.e-17, 1e-2), #xlim = (1.e-12,100),   
-                    xticks= [x for x in range(0, int(maxdim/step +5), 5)], #xticklabels=[str(x) for x in range(0, int(maxdim/step +5), 5)],
-                    yticks=[10**(-s) for s in range(4,17,1)],    
-                    ),
-                )
+            subplot_kw=dict( 
+                yscale = 'log', xscale ='linear',
+                ylabel = r'$|\frac{E-E_{ed}}{L}|$', xlabel = r'$\#\: iterations$',
+                # ylim = (1.e-17, 1e-2), #xlim = (1.e-12,100),   
+                yticks=[10**(-s) for s in range(4,17,1)],    
+                ),
+            )
     
 
-    new_truncated_energy = []
-    old_truncated_energy = []
+    nexus_energy = np.zeros(np.size(all_files), dtype=np.float128) #[]
+    blind_energy = np.zeros(np.size(all_files), dtype=np.float128) #[]
     new_basis_set = []
+    new_amps_set = []
+    old_amps_set = []
     # new_distan_counts = []
-    bond_set = []
+    bond_set = np.zeros(np.size(all_files), dtype=np.float128) #[]
+    all_amps = np.zeros((maxdim), dtype=np.float128) #[]
     for indx, nome in enumerate(all_files):
         print(" - file name is ",nome)
         data_dic = np.load(folder_path + nome , allow_pickle=True).item()
         
-        bond = data_dic['bond_size']
-        bond_set.append(bond)
+        # step = data_dic['step_size']
+        bond = bonds[indx]#data_dic['bond_size']
+        bond_set[indx] = bond #.append(bond)
         
-        new_energies = data_dic['new']
+        new_energies = data_dic['new_energy']
         print(" - size of new energies ", len(new_energies))
+        
         if np.abs(new_energies[-1] - ed_energy) <= 0.0:
             print("  ****new energies problem****")
-            print(f" - - ground state  energy for bond {bond} is {ed_energy:.22f}")
-            print(f" - - new truncated energy for bond {bond} is {new_energies[-1] :.22f}")
-            print(f" - - old truncated energy for bond {bond} is {data_dic['old'] :.22f}")
-            print("")
-            new_energies[-1] = ed_energy + 1.e-16
-        new_truncated_energy.append(new_energies[-1])
+            print(f"  - - ground state  energy for bond {bond} is {ed_energy:.25f}")
+            print(f"  - - new truncated energy for bond {bond} is {new_energies[-1] :.25f}")
+            # new_energies[-1] = ed_energy + 0.8*Ls*1.e-16
+            new_energies[-1] += 0.8*Ls*1.e-16
+            print(f"  - - new truncated energy for bond {bond} is {new_energies[-1] :.25f}")
+
+        if np.abs(data_dic['old_energy'] - ed_energy) <= 0.0:
+            print("  ****old energies problem****")
+            print(f"  - - ground state  energy for bond {bond} is {ed_energy:.25f}")
+            print(f"  - - old truncated energy for bond {bond} is {data_dic['old_energy'] :.25f}")
+            data_dic['old_energy'] = ed_energy + 0.8*Ls*1.e-16
+
             
-        old_truncated_energy.append(data_dic['old'])
+        nexus_energy[indx] = new_energies[-1] #.append(new_energies[-1])
+        blind_energy[indx] = data_dic['old_energy'] #.append(data_dic['old'])
         
         # new_distan_counts.append(data_dic['dstn_count'])
         
-        new_basis_set.append(data_dic['basis_set'])
+        new_basis_set.append(data_dic['basis_set'])#append(data_dic['new_basis'])
+        # new_amps_set.append(data_dic['new_amps'])
         
-        # print(f" - ground state  energy for bond {bonds[indx]} is {ed_energy:.22f}")
-        # print(f" - new truncated energy for bond {bonds[indx]} is {new_energies[-1] :.22f}")
-        # print(f" - old truncated energy for bond {bonds[indx]} is {data_dic['old'] :.22f}")
-        # print("")
+        # ######### for now I will use the old amplitudes from the old data a.k.a. raw_data/Amplitudes/...
+        # old_amps_set.append(data_dic['old_amps'])
         
         if mid_plot:
             mid_energy = np.abs(np.array(new_energies) - ed_energy)/Ls
             mid_ax.plot(mid_energy, marker='o', label=f"M={bond}", markersize=5)
                 
 
-    arcivo = open(f'Superposition_run/raw_data/test/NBTS_{Vs}_{Ls:02}.npy', 'wb') #NBTS : new best truncated state    #BTGS : best truncated ground state
-    # np.save(arcivo, np.array([new_truncated_energy, bonds]))
-    np.save(arcivo, np.array([new_truncated_energy, bond_set]))
+    arcivo = open(f'Superposition_run/raw_data/test/NXET_{Vs}_{Ls:02}.npy', 'wb') #NXTR: nexus energy truncation.   #NBTS: new best truncated state.   #BTGS: best truncated ground state.
+    # np.save(arcivo, np.array([nexus_energy, bonds]))
+    np.save(arcivo, np.array([nexus_energy, bond_set]))
     arcivo.close()
     print(f"New Bond-Search Data file saved")
     print("")
     
     arcivo = open(f'Superposition_run/raw_data/test/TRNC_{Vs}_{Ls:02}.npy', 'wb')
-    np.save(arcivo, np.array([old_truncated_energy, bond_set]))
+    np.save(arcivo, np.array([blind_energy, bond_set]))
     arcivo.close()
     print(f"Old Truncated Data file saved")
     print("")
     
-    arcivo = open(f'Superposition_run/raw_data/test/BBST_{Vs}_{Ls:02}.npy', 'wb') #BBST : best basis set
-    np.save(arcivo, new_basis_set)
+    arcivo = open(f'Superposition_run/raw_data/test/NXBL_{Vs}_{Ls:02}.npy', 'wb') #NXBL: nexus basis list   BBST : best basis set
+    np.save(arcivo, np.asanyarray(new_basis_set , dtype=object))
     arcivo.close()
     print(f"Best Basis Set file saved")
     print("")
+    
+    arcivo = open(f'Superposition_run/raw_data/test/AMNX_{Vs}_{Ls:02}.npy', 'wb') #AMNX: amplitudes nexus 
+    np.save(arcivo, np.asanyarray(new_amps_set, dtype=object))
+    arcivo.close()
+    print(f"Best Amplitude Set file saved")
+    print("")
+    
+    # arcivo = open(f'Superposition_run/raw_data/test/AMBL_{Vs}_{Ls:02}.npy', 'wb') #AMBL: amplitudes blind list
+    # np.save(arcivo, old_amps_set)
+    # arcivo.close()
+    # print(f"Best Basis Set file saved")
+    # print("")
     
     
     
     if mid_plot:
         mid_ax.grid(which='major', axis='y', linestyle=':')
         mid_ax.legend(loc='best', ncol=2, fontsize='small', markerscale=0.9)
-        mid_fig.savefig(f"Superposition_run/output/All_Bonds_mid_converge_V{Vs}_L{Ls}_J{job_number}.pdf", bbox_inches = 'tight')
+        mid_ax.set_title(f"All |M| convergence for L = {Ls}, V={Vs} & |m|={step}")
+        mid_ax.set_xticks= [x for x in range(0, int(maxdim/step +5), 5)], #mid_ax.set_xticklabels=[str(x) for x in range(0, int(maxdim/step +5), 5)],
+        mid_fig.savefig(f"Superposition_run/plots/All_Bonds_mid_converge_V{Vs}_L{Ls}_J{job_number}.pdf", bbox_inches = 'tight')
         print(f"Mid convergence plot saved")
         print("")
+    
     
     if fin_plot:    
         fig, ax = plt.subplots(1,1, figsize=(8, 6), 
@@ -280,19 +297,19 @@ if True: #######################################################################
                     title= f"comparing the convergence new vs old for L = {Ls}, V={Vs} & |m|={step}",
                     ylabel= r'$|\frac{E-E_{ed}}{L}|$', xlabel = r'$|M|$',
                     xticks= bond_set[::2], #xticklabels=[str(x) for x in bonds],
-                    yticks=[10**(-s) for s in range(4,17)],    
-                    # ylim = (1.e-17, 1e-2), #xlim = (1.e-12,100),   
+                    yticks=[10**(-s) for s in range(4,18)],    
+                    # ylim = (1.e-18, 1e-2), #xlim = (1.e-12,100),   
                     ),
                 )
         
-        new_truncated_energy = np.abs(np.array(new_truncated_energy) - ed_energy)/Ls
-        # ax.plot( bonds, new_truncated_energy, label="new", ls='--', linewidth=0.7, marker='o')
-        ax.plot( bond_set, new_truncated_energy, label="new", ls='--', linewidth=0.7, marker='o')
-        old_truncated_energy = np.abs(np.array(old_truncated_energy) - ed_energy)/Ls
-        ax.plot( bond_set, old_truncated_energy, label="old", ls='--', linewidth=0.7, marker='d')
+        nexus_energy = np.abs(np.array(nexus_energy) - ed_energy)/Ls
+        # ax.plot( bonds, nexus_energy, label="new", ls='--', linewidth=0.7, marker='o')
+        ax.plot( bond_set, nexus_energy, label="new", ls='--', linewidth=0.7, marker='o')
+        blind_energy = np.abs(np.array(blind_energy) - ed_energy)/Ls
+        ax.plot( bond_set, blind_energy, label="old", ls='--', linewidth=0.7, marker='d')
         ax.grid(which='major', axis='y', linestyle=':')
         ax.legend(loc='best')
-        fig.savefig(f"Superposition_run/output/__comapring_new_vs_old_method_V_{Vs}_L{Ls}_J{job_number}.pdf", bbox_inches = 'tight')
+        fig.savefig(f"Superposition_run/plots/__comapring_new_vs_old_method_V_{Vs}_L{Ls}_J{job_number}.pdf", bbox_inches = 'tight')
         print(f"A convergence plot saved")
         print("")
         

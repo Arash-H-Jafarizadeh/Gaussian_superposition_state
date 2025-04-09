@@ -17,6 +17,8 @@ import scipy as sp # type: ignore
 import time as tt
 import matplotlib.pyplot as plt # type: ignore
 import matplotlib.colors as colors # type: ignore
+import matplotlib.cm as cmaps # type: ignore
+
 import glob
 import sys
 
@@ -360,24 +362,31 @@ if False: ######################################################################
     error_vline = True
     custom_color = True
     # sorted = False
-    histo = False
+    histo = True
     
+    Vs, Ls = 0.2, 14
     # ########## creating custom color map for colorbar:
-    Ncolors = L//2 + 1
-    colmap = pl.get_cmap('tab10') #'jet'
+    Ncolors = Ls//2 + 1
+    colmap = plt.get_cmap('tab10') #'jet'
     new_colors = colmap(np.linspace(0, 1, 10)[:Ncolors])
-    custom_cmap = pl_colors.ListedColormap(new_colors)
+    custom_cmap = colors.ListedColormap(new_colors)
     
     
-    folder_path = 'Superposition_run/raw_data/Amplitudes/'
-    nome = ""
-    print("- - file name:", nome )
+    # folder_path = 'Superposition_run/raw_data/Amplitudes/'
+    # data = np.load(folder_path + nome)
+    data_all = np.load(f'Superposition_run/raw_data/Amplitudes/AMP_{Vs}_{Ls:02}.npy')
+    amps_all = np.abs(data_all)
+    X_all = np.arange(np.size(data_all)).astype(int)
+    dist_all = np.load(f'Superposition_run/raw_data/Amplitudes/DSTN_{Vs}_{Ls:02}.npy')
 
-    Vs = float(nome[5:8])
-    Ls = int(nome[9:11])
+    data_some = np.load(f'Superposition_run/raw_data/test/AMNX_{Vs}_{Ls:02}.npy', allow_pickle=True)
+    X_some = np.arange(np.size(data_some)).astype(int)
+
+
+    # Vs = float(nome[5:8])
+    # Ls = int(nome[9:11])
     maxdim = sp.special.binom(Ls, Ls//2)    
 
-    data = np.load(folder_path + nome)
     
     
     marks = ['o','s','^','v','D','p','h','8']
@@ -398,47 +407,49 @@ if False: ######################################################################
 
     
     # ########## not sorted plot
-    ax[1].scatter(x_data, amps, c=dist, s=10, cmap=custom_cmap)
-    ax[1].set_title(f"NOT sorted", y = 0.91)
+    im0 = ax[0].scatter(X_all, amps_all, c=dist_all, s=10, cmap=custom_cmap)
+    ax[0].set_title(f"NOT sorted", y = 0.91)
     # ax[fig_num].legend(loc='best')
-    ax[1].grid(which='major', axis='both', linestyle=':')
-    ax[1].tick_params(direction='in', labelsize=8)
-
-    # ########## yes sorted plot
-    im = ax[0].scatter(x_data, Samps, c=Sdist, s=10, cmap=custom_cmap)
-    ax[0].set_title(f"sorted", y = 0.91)
     ax[0].grid(which='major', axis='both', linestyle=':')
     ax[0].tick_params(direction='in', labelsize=8)
+
+    # ########## yes sorted plot
+    im1 = ax[1].scatter(x_data, Samps, c=Sdist, s=10, cmap=custom_cmap)
+    ax[1].set_title(f"sorted", y = 0.91)
+    ax[1].grid(which='major', axis='both', linestyle=':')
+    ax[1].tick_params(direction='in', labelsize=8)
 
     # ####### if colorbar original
     # fig.colorbar(im, extend='both', ticks=[1, 2, 3, 4])
 
     # ####### if colorbar inside
     cbar_ax = ax[0].inset_axes([0.97,0.3, 0.01, 0.65])
-    cbar = fig.colorbar(im, cax=cbar_ax, location='left')#, extend='both', )
-    n_clusters = L//2+1
+    cbar = fig.colorbar(im0, cax=cbar_ax, location='left')#, extend='both', )
+    n_clusters = Ls//2+1
     tick_locs = (np.arange(n_clusters) + 0.5)*(n_clusters-1)/n_clusters
-    tick_labs = [str(x) for x in range(L//2+1)]
+    tick_labs = [str(x) for x in range(Ls//2+1)]
     cbar.set_ticks(ticks = tick_locs, labels=tick_labs)
 
 
-    if True: ######## if histogram
+    if histo: ######## if histogram
         ax_histy = ax[0].inset_axes([1.01, 0, 0.25, 1], sharey=ax[0])
-        ax_histy.tick_params(axis="y", labelleft=False)
-
-        m_all = np.ma.masked_where( Samps >=1.e-120, Samps)
-        new_dist_all = np.array(Sdist)[np.ma.getmask(m_all)]  
+        # ax_histy.tick_params(axis="y", labelleft=False, labelbottom=False, labeltop=True)
+        ax_histy.tick_params(bottom=False, top=True, left=True, labelleft=False, labelbottom=False, labeltop=True)
+        ax_histy.tick_params(axis='x', direction='in')
+        
+        m_all = np.ma.masked_where( amps_all >=1.e-120, amps_all)
+        new_dist_all = np.array(dist_all)[np.ma.getmask(m_all)]  
         uniq_dist_all, uniq_count_all = np.unique(new_dist_all, return_counts=True)
 
         off_set = 1
         x_len = 24
         x_data_inset = []
-        y_data_inset = np.zeros((L//2+1, x_len//off_set))#[]
+        y_data_inset = np.zeros((Ls//2+1, x_len//off_set))#[]
 
         for indx, d in enumerate(range(0, x_len, off_set)):
             lim = 10**(-d)        
-            m_loop = np.ma.masked_where(np.logical_and( Samps < lim, Samps >= 10**(-off_set)*lim), Samps)  
-            new_dist_loop = np.array(Sdist)[np.ma.getmask(m_loop)]  
+            m_loop = np.ma.masked_where(np.logical_and( amps_all < lim, amps_all >= 10**(-off_set)*lim), amps_all)  
+            new_dist_loop = np.array(dist_all)[np.ma.getmask(m_loop)]  
             uniq_dist_loop, uniq_count_loop = np.unique(new_dist_loop, return_counts=True)
             x_data_inset.append(lim)
             for jndx, dd in enumerate(uniq_dist_loop):
@@ -449,22 +460,78 @@ if False: ######################################################################
 
 
             
-            
     # fig.suptitle(r"Amplitudes for different L's and V's ($error\:=|\frac{E-E_{ed}}{L}|$)", fontsize='large', y=0.901)
     fig.suptitle(f"Amplitudes sorted (top) and NOT sorted (bottom) for L={Ls} and V={Vs}", fontsize='large', y=0.91)
-    plt.savefig(f"Superposition_run/output/_test_Colored_Amplitudes_V{physical[0]}_L{L:02}_(sort)(histo)_J{job_number}.pdf",  dpi=400, bbox_inches = 'tight')
+    plt.savefig(f"Superposition_run/plots/_test_Colored_Amplitudes_V{Vs}_L{Ls:02}_(sort)(histo)_J{job_number}.pdf",  dpi=400, bbox_inches = 'tight')
 
 
+if True: ######################################################################### Ploting faded colorfull Amplitudes comparing nexus and blind - 20250400
+    kink_vline = False
+    error_vline = True
+    cbar_in = True
+    
+    Vs, Ls = 0.2, 14
+    # ########## creating custom color map for colorbar:
+    Ncolors = Ls//2 + 1
+    colmap = plt.get_cmap('tab10') #'jet'
+    new_colors = colmap(np.linspace(0, 1, 10)[:Ncolors])
+    custom_cmap = colors.ListedColormap(new_colors)
+    
+    
+    # folder_path = 'Superposition_run/raw_data/Amplitudes/'
+    # data = np.load(folder_path + nome)
+    data_all = np.load(f'Superposition_run/raw_data/Amplitudes/AMP_{Vs}_{Ls:02}.npy')
+    amps_all = np.abs(data_all)
+    X_all = np.arange(np.size(data_all)).astype(int)
+    dist_all = np.load(f'Superposition_run/raw_data/Amplitudes/DSTN_{Vs}_{Ls:02}.npy')
+
+    data_some = np.load(f'Superposition_run/raw_data/test/AMNX_{Vs}_{Ls:02}.npy', allow_pickle=True)
+    print(data_some)
+    X_some = np.arange(np.size(data_some)).astype(int)
 
 
+    # Vs = float(nome[5:8])
+    # Ls = int(nome[9:11])
+    maxdim = sp.special.binom(Ls, Ls//2)    
 
     
-
- 
-
-
+    marks = ['o','s','^','v','D','p','h','8']
+    #errors for V lines!
+    errors = [1.e-4, 1.e-5, 1.e-6, 1.e-7, 1.e-8, 1.e-9, 1.e-10]
+    
+    fig, ax = plt.subplots(1,1, figsize=(8, 9), sharex=False, 
+            gridspec_kw=dict( hspace=0.15,
+                ),
+            subplot_kw=dict( 
+                xscale = 'linear', yscale ='log',               
+                ylabel = r'$|a_n|$',  
+                xlabel = r'$|n \rangle$',
+                # ylim = (1.e-17, 1e-2), #xlim = (1.e-12,100),   
+                # yticks=[10**(-s) for s in range(0,27,2)],         
+                ),
+            )
 
     
+    im0 = ax.scatter(X_all, amps_all, c=dist_all, s=10, cmap=custom_cmap)
+    ax.set_title(f"NOT sorted", y = 0.91)
+    # ax[fig_num].legend(loc='best')
+    ax.grid(which='major', axis='both', linestyle=':')
+    ax.tick_params(direction='in', labelsize=8)
+
+    if cbar_in:
+        cbar_ax = ax.inset_axes([0.97,0.3, 0.01, 0.65])
+    else:
+        cbar_ax = ax.inset_axes([1.1,0.3, 0.01, 0.65])
+    
+    cbar = fig.colorbar(im0, cax=cbar_ax, location='left')#, extend='both', )
+    n_clusters = Ls//2+1
+    tick_locs = (np.arange(n_clusters) + 0.5)*(n_clusters-1)/n_clusters
+    tick_labs = [str(x) for x in range(Ls//2+1)]
+    cbar.set_ticks(ticks = tick_locs, labels=tick_labs)
+
+
+    # fig.suptitle(f"Amplitudes sorted (top) and NOT sorted (bottom) for L={Ls} and V={Vs}", fontsize='large', y=0.91)
+    # plt.savefig(f"Superposition_run/plots/_test_Faded_Compare_Colored_Amplitudes_V{Vs}_L{Ls:02}_J{job_number}.pdf",  dpi=400, bbox_inches = 'tight')
 
     
 

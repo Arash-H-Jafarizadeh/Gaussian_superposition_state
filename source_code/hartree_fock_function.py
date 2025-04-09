@@ -274,7 +274,7 @@ def hart_fock_superposition(physical, L, **kws):
     return(new_ham, super_basis) #new_order)
 
 
-######################################################################################## new algorithm for superposition optimization
+######################################################################################## new algorithm for superposition optimization (needs improvement - 20250408)
 
 def new_based_ham(physical, L, bond_list, u_mat, **kwargs):
     
@@ -308,7 +308,7 @@ def new_hart_fock_optimization(physical, L, **kws):
     return(last_E, last_U)
 
 
-def new_hf_optimization(physical, L, bond_size, **kws):
+def synaptic_optimization(physical, L, bond_size, **kws):
     max_steps = kws['max_steps'] if 'max_steps' in kws.keys() else 200
     size_step = kws['size_step'] if 'size_step' in kws.keys() else 5
     # amp_trshld = kws['amp_trshld'] if 'amp_trshld' in kws.keys() else 1.e-12
@@ -352,6 +352,50 @@ def new_hf_optimization(physical, L, bond_size, **kws):
     return(output_energy, basis[:bond_size], output_amps)
         
  
+
+def nexus_optimization(physical, L, bond_size, hf_E, hf_U, **kws):
+    """ This function is the same as above, it just don't start from HF optimization to get the best sub-basis set."""
+    max_search_steps = kws['max_search_steps'] if 'max_search_steps' in kws.keys() else 200
+    size_step = kws['size_step'] if 'size_step' in kws.keys() else int(2*L)
+    # amp_trshld = kws['amp_trshld'] if 'amp_trshld' in kws.keys() else 1.e-12
+    # output_amps = kws['return_amps'] if 'return_amps' in kws.keys() else False
+    
+    bond_list = ordered_basis(L, hf_E, **kws)
+    # basis = bond_list[:bond_size + size_step]
+    basis = bond_list[:bond_size]
+
+    output_amps = np.zeros((bond_size,), dtype=np.float64)
+    output_energy = []
+    step = 0
+    
+    # while step < max_steps and len(bond_list) >= size_step:
+    while step < max_search_steps and len(bond_list) > 0:
+        
+        # print(f"*** step {step}")
+        ham, _ = new_based_ham(physical, L, basis, hf_U, **kws)
+        _, U = np.linalg.eigh(ham)
+        
+        amps = np.abs(U[:,0])
+        order = np.argsort(amps)[::-1] 
+        new_basis = np.array(basis)[order.astype(int)]
+
+        bond_list = np.setdiff1d(bond_list, new_basis, assume_unique=True)
+        basis = np.concatenate((new_basis[:bond_size], bond_list[:size_step]), axis=None)
+
+        ham, _ = new_based_ham(physical, L, basis[:bond_size], hf_U, **kws)
+        
+        # E = np.linalg.eigvalsh(ham)
+        
+        E, nU = np.linalg.eigh(ham)
+        output_amps = nU[:,0]
+        # N_amps = np.abs(nU[:,0])
+        # res_amps = np.floor(np.log10(N_amps))
+        
+        output_energy.append( E[0] )
+        
+        step += 1    
+        
+    return(output_energy, basis[:bond_size], output_amps)
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~ below can be removed X

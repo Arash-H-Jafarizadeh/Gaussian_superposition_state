@@ -343,7 +343,8 @@ if True:########################################################################
 
     # array_dict['dstn_count'] = COUNTS
     print(f"- - counts for bond {bond} is {COUNTS}")
-    print(f"- - amplitudes for bond {bond} is {test_amps}")
+    print(f"- - order of amplitudes for bond {bond} is {np.floor(np.log10(np.abs(test_amps)))}")
+    print("")
 
     test_energy = np.abs(np.array(test_energy) - ed_energy)/Ls
     plt.plot(test_energy, marker='o', label=f"M = {bond}")
