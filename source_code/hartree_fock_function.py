@@ -336,11 +336,10 @@ def synaptic_optimization(physical, L, bond_size, **kws):
         bond_list = np.setdiff1d(bond_list, new_basis, assume_unique=True)
         basis = np.concatenate((new_basis[:bond_size], bond_list[:size_step]), axis=None)
 
-        ham, _ = new_based_ham(physical, L, basis[:bond_size], hf_U, **kws)
+        # ham, _ = new_based_ham(physical, L, basis[:bond_size], hf_U, **kws)
+        # E, nU = np.linalg.eigh(ham)
         
-        # E = np.linalg.eigvalsh(ham)
-        
-        E, nU = np.linalg.eigh(ham)
+        E, nU = np.linalg.eigh(ham[np.ix_(order[:bond_size],order[:bond_size])])
         output_amps = nU[:,0]
         # N_amps = np.abs(nU[:,0])
         # res_amps = np.floor(np.log10(N_amps))
@@ -354,7 +353,7 @@ def synaptic_optimization(physical, L, bond_size, **kws):
  
 
 def nexus_optimization(physical, L, bond_size, hf_E, hf_U, **kws):
-    """ This function is the same as above, it just don't start from HF optimization to get the best sub-basis set."""
+    """ This function is the same as above, it just don't start from HF optimization and it needs the HF outputs to work."""
     max_search_steps = kws['max_search_steps'] if 'max_search_steps' in kws.keys() else 200
     size_step = kws['size_step'] if 'size_step' in kws.keys() else int(2*L)
     # amp_trshld = kws['amp_trshld'] if 'amp_trshld' in kws.keys() else 1.e-12
@@ -382,11 +381,10 @@ def nexus_optimization(physical, L, bond_size, hf_E, hf_U, **kws):
         bond_list = np.setdiff1d(bond_list, new_basis, assume_unique=True)
         basis = np.concatenate((new_basis[:bond_size], bond_list[:size_step]), axis=None)
 
-        ham, _ = new_based_ham(physical, L, basis[:bond_size], hf_U, **kws)
-        
-        # E = np.linalg.eigvalsh(ham)
-        
-        E, nU = np.linalg.eigh(ham)
+        # ham, _ = new_based_ham(physical, L, basis[:bond_size], hf_U, **kws)
+        # E, nU = np.linalg.eigh(ham)
+
+        E, nU = np.linalg.eigh(ham[np.ix_(order[:bond_size],order[:bond_size])])
         output_amps = nU[:,0]
         # N_amps = np.abs(nU[:,0])
         # res_amps = np.floor(np.log10(N_amps))

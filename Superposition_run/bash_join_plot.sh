@@ -6,17 +6,20 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=3
-#SBATCH --mem=5g
+#SBATCH --mem=8g
 #SBATCH --time=0-00:11:22
 ## #SBATCH --output=Superposition_run/output/Amps_JoinPlot_Run_%a.out
-#SBATCH --output=Superposition_run/output/X_JoinPlot_Run.out 
-## #SBATCH --exclude=comp044
+## #SBATCH --output=Superposition_run/output/X_JoinPlot_Run.out 
+#SBATCH --output=Superposition_run/output/Z_JoinPlot_Run.out 
+#SBATCH --exclude=comp007
+## #SBATCH --nodelist=comp007
 
 	
 PYTHON=/gpfs01/home/ppzaj/python_projects/HF_Fermionic_State_Prepration/.env/bin/python3
 
 ## SCRIPT=/gpfs01/home/ppzaj/python_projects/HF_Fermionic_State_Prepration/Superposition_run/join_data_run_V0.py
-SCRIPT=/gpfs01/home/ppzaj/python_projects/HF_Fermionic_State_Prepration/Superposition_run/plot_data_run_V1.py
+## SCRIPT=/gpfs01/home/ppzaj/python_projects/HF_Fermionic_State_Prepration/Superposition_run/plot_data_run_V1.py
+SCRIPT=/gpfs01/home/ppzaj/python_projects/HF_Fermionic_State_Prepration/Superposition_run/plot_data_run_V2.py
 
 
 echo " BASH JOIN & PLOT START "

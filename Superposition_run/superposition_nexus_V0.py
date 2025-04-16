@@ -144,30 +144,27 @@ if False: ######################################################################
 
 if True: ###################################################################### creating the data for each array job in a dict format
     mid_plot = True
+    save_data = True
     
     Ls = 16
-    Vs, Js = 0.2, 1.0 
+    Vs, Js = 0.3, 1.0 
     ed_energy = np.load('Superposition_run/raw_data/Ground_State_Energy/' + f"EDGS_{Vs}_{Ls:02}.npy")
     
-    num_pnts = 23
+    # num_pnts = 23
+    # b_step = int( 10 * np.round((maxdim/num_pnts)/10))
+    b_step = 700
+    step = 1000
+    
     maxdim = sp.special.binom(Ls, Ls//2)    
-    # B = int( 10 * np.round((maxdim/num_pnts)/10))
      
-    bonds = np.array( [1] + [b for b in range(550, int(maxdim), 550)] + [int(maxdim)] , dtype=np.int64) # B should come here
+    bonds = np.array( [1] + [b for b in range(b_step, int(maxdim), b_step)] + [int(maxdim)] , dtype=np.int64) # B should come here
     print(f"- length of bonds is: {np.size(bonds)}")
     print(f"- Array {array_number}th bond is {bonds[array_number]}")
-    step = 420
     
     t_0 = tt.time()
     HF_E, HF_U = hf.new_hart_fock_optimization([Vs, Js], Ls, max_iters=hf_iters, PBC=False, start_point=1.e-14)
     print(f"- Hartree Fock Optimization Time:", tt.time() - t_0,"(s)")
     
-    #this part went down to avoid making the full matrix and just using submatrix of it
-    # t_1 = tt.time() 
-    # super_ham, super_basis = hf.based_ham([Vs, Js], Ls, HF_E, HF_U, PBC=False) #, basis_len = bond
-    # print(f"- Full Matrix Creation Time: ", tt.time() - t_1,"(s)")
-    # print("")
-
 
     array_dict = {}
     array_dict['step_size'] = step
@@ -188,21 +185,26 @@ if True: ###################################################################### 
         # new_data[indx] = nexus_energy[-1]
     print("- - TESTING if bond is: ",len(nexus_basis))
     
-    #this part went down to avoid making the full matrix and just using submatrix of it
-    # t_4 = tt.time()
-    # Es, Us = np.linalg.eigh(super_ham[:bond,:bond])
-    # print(f"- - Eigenvalue Time (old): ", tt.time() - t_4,"(s) for ", bond,",",bond/maxdim)
-    # array_dict['old_energy'] = Es[0] #(Es[0] - ed_energy)/Ls
-    # array_dict['old_amps'] = Us[:,0] 
-    #     # blind_data[indx] = (Es[0] - ed_energy[L])/L    
     
-    t_1 = tt.time()
-    super_ham, super_basis = hf.based_ham([Vs, Js], Ls, HF_E, HF_U, PBC=False, basis_len = bond)
-    print(f"- Bond Matrix Creation Time: ", tt.time() - t_1,"(s)")
-    print("")
+    """
+    **IMPROVEMENT**:
+        this part went down to avoid making the full matrix and just using submatrix of it. Or just call a saved matrix for old method
+    """
+    # t_1 = tt.time() 
+    # super_ham, super_basis = hf.based_ham([Vs, Js], Ls, HF_E, HF_U, PBC=False) #, basis_len = bond
+    # print(f"- Full Matrix Creation Time: ", tt.time() - t_1,"(s)")
+    # print("")
+    
+    # t_1 = tt.time() ######## IMPROVEMENT: below I just use a saved matrix to avoid making the full matrix and use the order_basis function to get full basis set
+    # super_ham, super_basis = hf.based_ham([Vs, Js], Ls, HF_E, HF_U, PBC=False, basis_len = bond)
+    # print(f"- Bond Matrix Creation Time: ", tt.time() - t_1,"(s)")
+    # print("")
+    
+    super_ham = np.load(f'Superposition_run/raw_data/Full_Matrix/FulMat__{Vs}_{Ls:02}.npy')
+    super_basis = hf.ordered_basis(Ls, HF_E)
     
     t_4 = tt.time()
-    Es, Us = np.linalg.eigh(super_ham)
+    Es, Us = np.linalg.eigh(super_ham[:bond,:bond])
     print(f"- - Eigenvalue Time (old): ", tt.time() - t_4,"(s) for ", bond,",",bond/maxdim)
     print("")
     array_dict['old_energy'] = Es[0] #(Es[0] - ed_energy)/Ls
@@ -237,11 +239,11 @@ if True: ###################################################################### 
     
     print("- Size of full new data:", len(nexus_energy))
     print("")
-           
-    arcivo = open(f'Superposition_run/raw_data/test/DATA_{Vs}_{Ls:02}_{array_number:02}.npy', 'wb')
-    np.save(arcivo, array_dict)
-    arcivo.close()
     
-    
-    print(f"- Data files are saved")
-    print("") 
+    if save_data:       
+        arcivo = open(f'Superposition_run/raw_data/test/DATA_{Vs}_{Ls:02}_{array_number:02}.npy', 'wb')
+        np.save(arcivo, array_dict)
+        arcivo.close()
+        
+        print(f"- Data files are saved")
+        print("") 

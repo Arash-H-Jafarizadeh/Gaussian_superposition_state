@@ -173,18 +173,18 @@ if True: #######################################################################
     
     folder_path = 'Superposition_run/raw_data/test/'
     
-    Vs, Ls = 0.2, 14
+    Vs, Ls = 0.1, 16
     # all_files =  sorted( glob.glob('DATA'+'*0.2'+'*08'+'*.npy', root_dir=folder_path) )
     all_files =  sorted( glob.glob(f'DATA_{Vs}_{Ls:02}'+'*.npy', root_dir=folder_path) )
     print(all_files)
     print("")
     
     maxdim = int(sp.special.binom(Ls, Ls//2))    
-    bonds = np.array( [1] + [b for b in range(150, int(maxdim), 150)] + [int(maxdim)] )#np.linspace(1, maxdim, num_datas, dtype=np.int64)
-    step = 100 
-    print("size of bonds ", len(bonds))
+    step = 0 
+    # bonds = np.array( [1] + [b for b in range(150, int(maxdim), 150)] + [int(maxdim)] )#np.linspace(1, maxdim, num_datas, dtype=np.int64)
+    # print("size of bonds ", len(bonds))
     
-    ed_energy = np.load('Superposition_run/raw_data/Ground_State_Energy/' + f"EDGS_{Vs}_{Ls:02}.npy")
+    ed_energy = np.load(f'Superposition_run/raw_data/Ground_State_Energy/EDGS_{Vs}_{Ls:02}.npy')
 
     if mid_plot:
         mid_fig, mid_ax = plt.subplots(1,1, figsize=(9, 7), 
@@ -201,17 +201,18 @@ if True: #######################################################################
     blind_energy = np.zeros(np.size(all_files), dtype=np.float128) #[]
     new_basis_set = []
     new_amps_set = []
-    old_amps_set = []
     # new_distan_counts = []
     bond_set = np.zeros(np.size(all_files), dtype=np.float128) #[]
     all_amps = np.zeros((maxdim), dtype=np.float128) #[]
+    all_base = np.zeros((maxdim), dtype=np.int64) #[]
     for indx, nome in enumerate(all_files):
         print(" - file name is ",nome)
         data_dic = np.load(folder_path + nome , allow_pickle=True).item()
         
-        # step = data_dic['step_size']
-        bond = bonds[indx]#data_dic['bond_size']
+        step = data_dic['step_size']
+        bond = data_dic['bond_size'] # bonds[indx] #
         bond_set[indx] = bond #.append(bond)
+        print(" - bond is ", bond)
         
         new_energies = data_dic['new_energy']
         print(" - size of new energies ", len(new_energies))
@@ -228,7 +229,7 @@ if True: #######################################################################
             print("  ****old energies problem****")
             print(f"  - - ground state  energy for bond {bond} is {ed_energy:.25f}")
             print(f"  - - old truncated energy for bond {bond} is {data_dic['old_energy'] :.25f}")
-            data_dic['old_energy'] = ed_energy + 0.8*Ls*1.e-16
+            data_dic['old_energy'] += 0.8*Ls*1.e-16
 
             
         nexus_energy[indx] = new_energies[-1] #.append(new_energies[-1])
@@ -236,8 +237,18 @@ if True: #######################################################################
         
         # new_distan_counts.append(data_dic['dstn_count'])
         
-        new_basis_set.append(data_dic['basis_set'])#append(data_dic['new_basis'])
-        # new_amps_set.append(data_dic['new_amps'])
+        new_basis_set.append(data_dic['new_basis'])
+        new_amps_set.append(data_dic['new_amps'])
+        
+        if 'full_basis' in data_dic.keys(): 
+            all_base += data_dic['full_basis']
+            print(f"  - - all base set for L={Ls} exists and it is:")
+            # print(all_base)
+        
+        if 'full_amps' in data_dic.keys(): 
+            all_amps += data_dic['full_amps']
+            print(f"  - - all amps for L={Ls} exists and it is:")
+            # print(all_amps)
         
         # ######### for now I will use the old amplitudes from the old data a.k.a. raw_data/Amplitudes/...
         # old_amps_set.append(data_dic['old_amps'])
@@ -247,7 +258,7 @@ if True: #######################################################################
             mid_ax.plot(mid_energy, marker='o', label=f"M={bond}", markersize=5)
                 
 
-    arcivo = open(f'Superposition_run/raw_data/test/NXET_{Vs}_{Ls:02}.npy', 'wb') #NXTR: nexus energy truncation.   #NBTS: new best truncated state.   #BTGS: best truncated ground state.
+    arcivo = open(f'Superposition_run/raw_data/test/NXET_{Vs}_{Ls:02}.npy', 'wb') #NXET: nexus energy truncation.   #NBTS: new best truncated state.   #BTGS: best truncated ground state.
     # np.save(arcivo, np.array([nexus_energy, bonds]))
     np.save(arcivo, np.array([nexus_energy, bond_set]))
     arcivo.close()
@@ -270,6 +281,12 @@ if True: #######################################################################
     np.save(arcivo, np.asanyarray(new_amps_set, dtype=object))
     arcivo.close()
     print(f"Best Amplitude Set file saved")
+    print("")
+    
+    arcivo = open(f'Superposition_run/raw_data/test/BSAM_{Vs}_{Ls:02}.npy', 'wb') #AMBL: amplitudes blind list
+    np.save(arcivo, np.asanyarray([all_amps, all_base], dtype=object))
+    arcivo.close()
+    print(f"ALL Basis & Amplitudes file saved")
     print("")
     
     # arcivo = open(f'Superposition_run/raw_data/test/AMBL_{Vs}_{Ls:02}.npy', 'wb') #AMBL: amplitudes blind list
