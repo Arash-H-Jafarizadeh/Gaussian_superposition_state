@@ -112,7 +112,7 @@ if False: ######################################################################
     fig.suptitle(r"Comparing new \& old nergy density error ($|\frac{E-E_{ed}}{L}|$) for different L's and V's", fontsize='medium', y=0.91001)
 
     # fig.savefig(f"Superposition_run/plots/_test_new_vs_old_EnergyDensity_vs_L_fix_V_J{job_number}.pdf", bbox_inches = 'tight')
-    fig.savefig(f"Superposition_run/plots/EnergyDensity__new_vs_old__fix_V_2.png",  dpi=800, bbox_inches='tight')
+    # fig.savefig(f"Superposition_run/plots/EnergyDensity__new_vs_old__fix_V_2.png",  dpi=800, bbox_inches='tight')
 
 
 
@@ -121,30 +121,46 @@ if False: ######################################################################
     This bid plots the colorful amplitudes (faded or full) of nexus algorithm for fixed V and L
     """
     
-    kink_vline = False
-    error_vline = True
+    # kink_vline = False# error_vline = True
+
+    sorted = False
     cbar_in = False
-    plot_type = "faded" #  "full" # 
+    plot_type = "faded" #"full" # "full" #  
     
-    Vs, Ls = 0.1, 16
+    Vs, Ls = 0.1, 14
     nth = 9
+    
     # ########## creating custom color map for colorbar:
     Ncolors = Ls//2 + 1
     colmap = plt.get_cmap('tab10') #'jet'
     new_colors = colmap(np.linspace(0, 1, 10)[:Ncolors])
     custom_cmap = colors.ListedColormap(new_colors) #change name here
     
-    
-    # folder_path = 'Superposition_run/raw_data/Amplitudes/'
-    # data = np.load(folder_path + nome)
-    # data_all = np.load(f'Superposition_run/raw_data/Amplitudes/AMP_{Vs}_{Ls:02}.npy')
+
     data_all = np.load(f'Superposition_run/raw_data/test/BSAM_{Vs}_{Ls:02}.npy', allow_pickle=True)
+    
     amps_all = np.abs(data_all[0])
     base_all = data_all[1]
 
     X_all = np.arange(np.size(amps_all)).astype(int)
-    # dist_all = np.load(f'Superposition_run/raw_data/Amplitudes/DSTN_{Vs}_{Ls:02}.npy')
     dist_all = np.array(hf.basis_distance(base_all, Ls)).astype(np.int64)
+    # dist_all = np.load(f'Superposition_run/raw_data/Amplitudes/DSTN_{Vs}_{Ls:02}.npy')
+    
+    PN = "N"
+    pendix = "not sorted"
+    
+    if sorted:
+
+        order = np.argsort(amps_all)[::-1]
+        
+        amps_all = amps_all[order]
+        base_all = base_all[order]
+        dist_all = dist_all[order]
+        
+        PN = "S"
+        pendix = "sorted"
+        
+    
     print("len dist_all ", len(dist_all))
 
     bond_data = np.load(f'Superposition_run/raw_data/test/NXET_{Vs}_{Ls:02}.npy', allow_pickle=True)[1]#[nth]
@@ -153,9 +169,10 @@ if False: ######################################################################
     # X_some = np.arange(np.size(amps_some)).astype(int)
     base_some = np.load(f'Superposition_run/raw_data/test/NXBL_{Vs}_{Ls:02}.npy', allow_pickle=True)[nth]
     print("len base_some ", len(base_some))
+
     # indx_set = np.array([i for i, x in enumerate(base_all) if x in set(base_some)])
     indx_set = np.nonzero(np.isin(base_all, base_some))[0]
-    # print("index set ", indx_set)
+    
     
     amps_some = amps_all[indx_set]
     X_some = X_all[indx_set]
@@ -174,8 +191,6 @@ if False: ######################################################################
 
     
     marks = ['o','s','^','v','D','p','h','8']
-    #errors for V lines!
-    errors = [1.e-4, 1.e-5, 1.e-6, 1.e-7, 1.e-8, 1.e-9, 1.e-10]
     
     fig, ax = plt.subplots(1,1, figsize=(8, 5), sharex=False, 
             gridspec_kw=dict( hspace=0.15,
@@ -191,17 +206,18 @@ if False: ######################################################################
 
     
     if plot_type == "faded":
-        im0 = ax.scatter(X_all, amps_all, c=dist_all, s=10, cmap=custom_cmap, edgecolors='none', alpha=0.1, zorder=-10)
+        im0 = ax.scatter(X_all, amps_all, c=dist_all, s=10, cmap=custom_cmap, edgecolors='none', alpha=0.051, zorder=-10)
         ax.scatter(X_some, amps_some, c=dist_some, s=10, cmap=some_cmap, linewidth=0.05, edgecolors='0',  zorder=10) # lw=0.5, edgecolors='y', 
         
-        plot_title = f"Selected amplitudes for bond |M|={int(bond_data[nth])} ({nth}th) - L={Ls}, V={Vs}"
-        plot_name = f"Superposition_run/plots/Faded_Compare_Colored_Amplitudes_V{Vs}_L{Ls:02}_N{nth}.png"
+        plot_title = f"Selected amplitudes ({pendix}) for bond |M|={int(bond_data[nth])} ({nth}th) - L={Ls}, V={Vs}"
+        plot_name = f"Superposition_run/plots/{PN}_Faded_Colored_Amplitudes_V{Vs}_L{Ls:02}_{nth}"
     
     if plot_type == "full":
         im0 = ax.scatter(X_all, amps_all, c=dist_all, s=10, cmap=custom_cmap, zorder=10)
 
-        plot_title = f"All amplitudes (NOT) sorted - L={Ls}, V={Vs}"
-        plot_name = f"Superposition_run/plots/Colored_Amplitudes_V{Vs}_L{Ls:02}.png"
+        plot_title = f"All amplitudes ({pendix}) for L={Ls} and V={Vs}"
+        plot_name = f"Superposition_run/plots/{PN}_Full_Colored_Amplitudes_V{Vs}_L{Ls:02}"
+
 
     ax.grid(which='major', axis='both', linestyle=':', alpha=0.75)
     ax.tick_params(direction='in', labelsize=8)
@@ -219,21 +235,11 @@ if False: ######################################################################
     tick_labs = [str(x) for x in range(Ls//2+1)]
     cbar.set_ticks(ticks = tick_locs, labels=tick_labs)
 
-
-    # if plot_type == "faded":
-    #     fig.suptitle(f"Selected amplitudes for bond |M|={int(bond_data[nth])} ({nth}th) - L={Ls}, V={Vs}", fontsize='medium', y=0.95)
-    #     plot_name = f"Superposition_run/plots/Faded_Compare_Colored_Amplitudes_V{Vs}_L{Ls:02}_N{nth}.pdf"
-    #     fig.savefig(plot_name,  dpi=400, bbox_inches = 'tight')
-        
-    # if plot_type == "full":
-    #     fig.suptitle(f"All amplitudes (NOT) sorted for L={Ls} and V={Vs}", fontsize= 'medium', y=0.95)
-    #     # plot_name = f"Superposition_run/plots/_test_Colored_Amplitudes_V{Vs}_L{Ls:02}_J{job_number}.pdf"
-    #     plot_name = f"Superposition_run/plots/Colored_Amplitudes_V{Vs}_L{Ls:02}.pdf"
-    #     fig.savefig(plot_name,  dpi=400, bbox_inches = 'tight')
-    
     
     fig.suptitle(plot_title, fontsize= 'medium', y=0.95)
-    fig.savefig(plot_name,  dpi=800, bbox_inches = 'tight')
+    
+    # fig.savefig(plot_name+".png",  dpi=800, bbox_inches = 'tight')
+    # fig.savefig(plot_name+".pdf",  dpi=600, bbox_inches = 'tight')
 
 
 
@@ -343,7 +349,7 @@ if True: #######################################################################
     This bid plots the energy density convergence of nexus algorithm for fixed V and different L's
     """
     
-    Vs, Ls = 0.1, 14
+    Vs, Ls = 0.3, 16
     
     folder_path = 'Superposition_run/raw_data/test/'
     nome = f'NXET_{Vs}_{Ls:02}.npy'
@@ -351,14 +357,13 @@ if True: #######################################################################
     
     
     fig, ax = plt.subplots(2, 1, figsize=(8, 8), sharex=True, 
-            gridspec_kw=dict( hspace=0.0,
+            gridspec_kw=dict( hspace=0.07,
                 ),
             subplot_kw=dict( 
-                xscale = 'linear', yscale ='log',               
-                ylabel = r'$|\frac{ E-E_{_{ed}} }{ L }|$', #r'$|\frac{ E-E_{_*} }{ E_{_*} }|$', 
-                xlabel = r'$\frac{ \# \text{states} }{ N_L }$',
-                ylim = (1.e-17, 1e-2), #xlim = (1.e-12,100),   
-                yticks=[10**(-s) for s in range(2,17,1)],         
+                xscale = 'linear', #yscale ='log',               
+                # ylabel = r'$|\frac{ E-E_{_{ed}} }{ L }|$', #r'$|\frac{ E-E_{_*} }{ E_{_*} }|$', 
+                xlabel = r'$|M|$',#r'$\frac{ \# \text{states} }{ N_L }$',
+                # ylim = (1.e-17, 1e-2), #xlim = (1.e-12,100),   
                 )
             )
         
@@ -377,50 +382,79 @@ if True: #######################################################################
     
     ax[0].plot(x_data, new_y, label=f"{Ls}  ", color = f'C{0}', ls='-.', linewidth=0.5, marker='*', markersize=4, zorder=1) #f"new={Ls}"
     ax[0].plot(x_data, old_y, label=" ", color = f'C{0}', ls=':', linewidth=0.5, marker='.', markersize=5.5, zorder=-10) # f"old={Ls}"
-    ax[0].set_title(f"V={Vs}", y = 0.91)
+    
+    ax[0].set(
+            # title=f"comparing old truncation vs. new method for L={Ls}, V={Vs} & |m|={0}", 
+            yscale='log', ylabel=r'$|\frac{E-E_{_{ed}}}{L}|$', ylim=(1.e-17, 1e-4), yticks=[10**(-s) for s in range(4,17,1)],         
+            xticks=x_data, 
+        )
+
     ax[0].legend(loc='best', markerscale=0.7, fontsize='small',markerfirst=False)
     
     
     legen_title = " "*4+"L"+" "*3+"new"+" "*5+"old"+" "*3
     ax[0].legend(loc='best', ncol=2, columnspacing=1.0, title=legen_title, fontsize='small', markerfirst=False)
 
-    ax[0].grid(which='major', axis='both', linestyle=':', linewidth=0.5, alpha=0.7)
-    ax[0].tick_params(direction='in', labelsize=7)
             
-
     ################# creating colorbar plots
     
     DSTNS = np.arange(Ls//2+1)
     COUNTS = np.zeros((len(x_data),Ls//2+1), dtype=np.float16)
+    PERCNS = np.zeros((len(x_data),Ls//2+1), dtype=np.float16)
 
-    dists, counts = np.unique(hf.basis_distance(test_bond, L),return_counts=True)
-    counts = (counts/np.sum(counts))*100
-    # print("- - ", dists)
-    # print("- - ", counts)
-    dicd = dict(zip(dists,counts))
-    for n in dists:
-        COUNTS[indx, n] = dicd[n]
+    nexus_bonds = np.load(folder_path + f'NXBL_{Vs}_{Ls:02}.npy', allow_pickle=True)
+    # print("- NEXUS bonds:", nexus_bonds)
+    for indx, bonds in enumerate(nexus_bonds):
+        # print(f"- - bond {indx} has {len(bonds)}: ")
+        # print(bonds)
+        
+        dists, counts = np.unique(hf.basis_distance(bonds, Ls), return_counts=True)
+        percents = (counts/np.sum(counts))*100
+        # counts = (counts/np.sum(counts))*100
+        # print("- - ", counts)
+        # dicd = dict(zip(dists,percents))
+        dicd = dict(zip(dists,counts))
+        dicp = dict(zip(dists,percents))
+        for n in dists:
+            COUNTS[indx, n] = dicd[n]
+            PERCNS[indx, n] = dicp[n]
 
-    print(COUNTS)
-    # print(new_data)
-    # print(old_data)
 
-    for ii in range(L//2+1):
-        bottom = np.sum(COUNTS[:, 0:ii], axis=1)
-        stackbars = ax[1].bar(x_data, COUNTS[:, ii], bottom=bottom, width=4.0, label=f"{DSTNS[ii]}")
-        ax[1].bar_label(stackbars, labels=COUNTS[:, ii],label_type="center")#, padding=3)
-    ax[1].grid(which='major', axis='y', linestyle=':')
-    ax[1].set_title(f"percentage of distances in new method for L={L}, V={physical[0]} & |m|={step}")
-    ax[1].set_ylabel(f'percentage')
-    ax[1].legend(loc='best')
-    # ax.set_xticklabels(x)
+    for ii in range(Ls//2+1):
+        # ########### to remove the zero values from the plot
+        f = PERCNS[:, ii] != 0 
+        
+        # bottom = np.sum(COUNTS[f, 0:ii], axis=1)
+        # stackbars = ax[1].bar(x_data[f], COUNTS[f, ii], bottom=bottom, width=3.0, label= f"{DSTNS[ii]}")
+
+        bottom = np.sum(PERCNS[f, 0:ii], axis=1)
+        stackbars = ax[1].bar(x_data[f], PERCNS[:, ii][f], bottom=bottom, width=220.0, label= f"{DSTNS[ii]}")
+        
+        ax[1].bar_label(stackbars, labels=COUNTS[f, ii].astype(np.int64), label_type="center", fontsize=5, rotation=90)#, padding=3)
+
+        
+    ax[1].set(
+            # title=f"percentage of distances in new method for L={Ls}, V={Vs} & |m|={0}", 
+            yscale='linear', ylabel=r'$\% $ of distance in $|M|$', ylim=(0, 102),
+            xticks=x_data, xticklabels=[str(int(x)) for x in x_data],
+        )
+    
+    ax[1].legend(bbox_to_anchor=(1.015, 0.5), loc='center', borderaxespad=0., markerscale=0.8, fontsize=8, title='distance', title_fontsize=6)
+    ax[1].yaxis.label.set(fontsize=8) #, position=(0, 0.9))
+
+
+    for axs in ax:
+        axs.grid(which='major', axis='both', linestyle=':', linewidth=0.5, alpha=0.7,zorder=-10)
+        axs.tick_params(axis='y', direction='in', labelsize=7)
+        axs.tick_params(axis='x', labelrotation=90)
     
     
-    
-    
-    fig.suptitle(r"Comparing new \& old nergy density error ($|\frac{E-E_{ed}}{L}|$) for different L's and V's", fontsize='medium', y=0.94001)
+    fig.suptitle(f"Distribution of distances for best |M| selected + accuracy comparison - L={Ls}, V={Vs}", fontsize='medium', y=0.9001)
 
-    # fig.savefig(f"Superposition_run/plots/_test_new_vs_old_EnergyDensity_vs_L_fix_V_J{job_number}.pdf", bbox_inches = 'tight')
-    fig.savefig(f"Superposition_run/plots/EnergyDensity__new_vs_old__fix_V_2.png",  dpi=800, bbox_inches='tight')
+
+    # fig.savefig(f"Superposition_run/plots/_A_new_method_(dist+compar)_V{Vs}_L{Ls}_J{job_number}.png", dpi=800, bbox_inches = 'tight')
+    # fig.savefig(f"Superposition_run/plots/Distance_Distribution_new_method_(+compar)_V{Vs}_L{Ls}.png", dpi=800, bbox_inches = 'tight')
+    # fig.savefig(f"Superposition_run/plots/Distance_Distribution_new_method_(+compar)_V{Vs}_L{Ls}.pdf", dpi=500, bbox_inches = 'tight')
+
 
     

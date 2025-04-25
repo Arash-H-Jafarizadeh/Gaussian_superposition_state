@@ -146,18 +146,19 @@ if True: ###################################################################### 
     mid_plot = True
     save_data = True
     
-    Ls = 16
+    Ls = 14
     Vs, Js = 0.3, 1.0 
     ed_energy = np.load('Superposition_run/raw_data/Ground_State_Energy/' + f"EDGS_{Vs}_{Ls:02}.npy")
     
     # num_pnts = 23
     # b_step = int( 10 * np.round((maxdim/num_pnts)/10))
     b_step = 700
-    step = 1000
+    step = 100
     
     maxdim = sp.special.binom(Ls, Ls//2)    
      
-    bonds = np.array( [1] + [b for b in range(b_step, int(maxdim), b_step)] + [int(maxdim)] , dtype=np.int64) # B should come here
+    # bonds = np.array( [1] + [b for b in range(b_step, int(maxdim), b_step)] + [int(maxdim)] , dtype=np.int64) # B should come here
+    bonds = np.array( [50, 100] , dtype=np.int64) # this a test to add more early data points for size 14 and 16 
     print(f"- length of bonds is: {np.size(bonds)}")
     print(f"- Array {array_number}th bond is {bonds[array_number]}")
     
@@ -210,7 +211,7 @@ if True: ###################################################################### 
     array_dict['old_energy'] = Es[0] #(Es[0] - ed_energy)/Ls
     # array_dict['old_amps'] = Us[:,0] 
     
-    if bond == bonds[-1]:
+    if bond == maxdim: # if bond == bonds[-1]:
         array_dict['full_amps'] = Us[:,0] 
         array_dict['full_basis'] = super_basis 
 

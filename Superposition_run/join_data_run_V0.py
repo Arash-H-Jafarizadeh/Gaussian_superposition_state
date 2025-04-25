@@ -173,7 +173,7 @@ if True: #######################################################################
     
     folder_path = 'Superposition_run/raw_data/test/'
     
-    Vs, Ls = 0.1, 16
+    Vs, Ls = 0.3, 16
     # all_files =  sorted( glob.glob('DATA'+'*0.2'+'*08'+'*.npy', root_dir=folder_path) )
     all_files =  sorted( glob.glob(f'DATA_{Vs}_{Ls:02}'+'*.npy', root_dir=folder_path) )
     print(all_files)
