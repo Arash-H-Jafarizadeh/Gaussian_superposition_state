@@ -32,7 +32,7 @@ sys.path.append('/gpfs01/home/ppzaj/python_projects/HF_Fermionic_State_Prepratio
 import hartree_fock_function as hf
 
     
-if False: ######################################################################### Ploting energy-density-convergence for fixed V and different L - 20250410
+if True: ######################################################################### Ploting energy-density-convergence for fixed V and different L - 20250410
     """
     This bid plots the energy density convergence of nexus algorithm for fixed V and different L's
     """
@@ -86,9 +86,10 @@ if False: ######################################################################
             old_y = np.abs( old_data[0] - gsE) / np.abs(Ls) # np.abs(gsE)
 
             x_data = new_data[1] / maxdim
+            x_data2 = old_data[1] / maxdim
             
             ax[fig_num].plot(x_data, new_y, label=f"{Ls}  ", color = f'C{pnt}', ls='-.', linewidth=0.5, marker='*', markersize=4, zorder=1) #f"new={Ls}"
-            ax[fig_num].plot(x_data, old_y, label=" ", color = f'C{pnt}', ls=':', linewidth=0.5, marker='.', markersize=5.5, zorder=-10) # f"old={Ls}"
+            ax[fig_num].plot(x_data2, old_y, label=" ", color = f'C{pnt}', ls=':', linewidth=0.5, marker='.', markersize=5.5, zorder=-10) # f"old={Ls}"
             ax[fig_num].set_title(f"V={Vs}", y = 0.91)
             ax[fig_num].grid(which='major', axis='both', linestyle=':', linewidth=0.5, alpha=0.7)
             ax[fig_num].tick_params(direction='in', labelsize=7)
@@ -111,7 +112,7 @@ if False: ######################################################################
     
     fig.suptitle(r"Comparing new \& old nergy density error ($|\frac{E-E_{ed}}{L}|$) for different L's and V's", fontsize='medium', y=0.91001)
 
-    # fig.savefig(f"Superposition_run/plots/_test_new_vs_old_EnergyDensity_vs_L_fix_V_J{job_number}.pdf", bbox_inches = 'tight')
+    fig.savefig(f"Superposition_run/plots/EnergyDensity__new_vs_old_fix_V_J{job_number}.pdf", dpi=400, bbox_inches = 'tight')
     # fig.savefig(f"Superposition_run/plots/EnergyDensity__new_vs_old__fix_V_2.png",  dpi=800, bbox_inches='tight')
 
 
@@ -244,10 +245,10 @@ if False: ######################################################################
 
 
 
-if False: ######################################################################### Ploting error-scalling for NEXUS method for fixed V and different L - 20250415
+if True: ######################################################################### Ploting error-scalling for NEXUS method for fixed V and different L - 20250415
     
     fitting = True
-    scaling = "log-log" #"log-linear" # 
+    scaling = "log-linear" # "log-log" #
      
      
     def nearest(array, value):
@@ -338,13 +339,13 @@ if False: ######################################################################
         ax[-1].legend(loc='best', ncol=1, title="Error ")
             
     fig.suptitle(f" Error scaling of new method for different V's ({scaling})", fontsize='large', y=0.9001)
-    fig.savefig(f"Superposition_run/plots/ErrorScaling__NEXUS__fix_V_({scaling}).png", bbox_inches = 'tight')
+    fig.savefig(f"Superposition_run/plots/ErrorScaling__NEXUS__fix_V_({scaling}).png", dpi=800, bbox_inches = 'tight')
 
     
 
 
     
-if True: ######################################################################### Ploting energy-density-convergence + colorbars for fixed V and L - 20250410
+if False: ######################################################################### Ploting energy-density-convergence + colorbars for fixed V and L - 20250410
     """
     This bid plots the energy density convergence of nexus algorithm for fixed V and different L's
     """

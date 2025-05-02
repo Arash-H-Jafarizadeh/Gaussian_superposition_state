@@ -11,8 +11,8 @@ from tenpy.algorithms import dmrg
 from tenpy.networks.mps import MPS
 
 import logging
-logging.basicConfig(stream=sys.stdout, level=logging.INFO)
-# logging.disable(logging.INFO)
+# logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+logging.disable(logging.INFO)
 
 saving = True
 
@@ -31,10 +31,10 @@ print(f" ***** job {job_number} started ***** ")
 print("")
 
 error_in_energy = 1.e-18
-max_bond = 800
+max_bond = 1000
 
-sizes = [32, 34] #[20, 22, 24, 26, 28, 30]
-VS = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0] 
+sizes = [40, 50] #[20, 22, 24, 26, 28, 30]
+VS = [0.1, 0.2, 0.3] #[0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0] 
     
 input = []
 for siz in sizes:
@@ -86,8 +86,9 @@ dmrg_params = {
 results = dmrg.run(psi, model, dmrg_params)
 
 DMRG_GS = results['E'] + Vs*(ll-1)/8.
+
 if saving:
-    arcivo = open(f'Superposition/raw_data/EDGS_{Vs}_{ll:02}.npy', 'wb')
+    arcivo = open(f'Superposition_run/raw_data/Ground_State_Energy/EDGS_{Vs}_{ll:02}.npy', 'wb')
     np.save(arcivo, DMRG_GS)
     arcivo.close()
     print(f"- - data file {array_number} saved")

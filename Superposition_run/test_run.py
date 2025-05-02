@@ -1,4 +1,6 @@
+import glob
 import sys
+
 import numpy as np # type: ignore
 import scipy as sp # type: ignore
 import time as tt
@@ -289,7 +291,7 @@ if False:#######################################################################
     print(f"- Data files are saved")
     print("") 
 
-if True:#####################################################################################################################################################
+if False:#####################################################################################################################################################
     
     Ls = 14
     Vs, Js = 0.2, 1.0 
@@ -367,3 +369,67 @@ if True:########################################################################
     
     print(f"- Data files are saved")
     print("") 
+
+if True:#####################################################################################################################################################
+    
+    Ls = 14
+    Vs, Js = 0.3, 1.0 
+    
+    folder_path = 'Superposition_run/raw_data/test/'
+    maxdim = sp.special.binom(Ls, Ls//2)    
+    
+    # all_files =  sorted( glob.glob('DATA'+'*0.2'+'*08'+'*.npy', root_dir=folder_path) )
+    all_files =  sorted( glob.glob(f'DATA_{Vs}_{Ls:02}'+'*.npy', root_dir=folder_path) )[::-1]
+    print(all_files)
+    print("")
+    
+    receiver = np.load(folder_path + f"NXET_{Vs}_{Ls:02}.npy")
+    receiver2 = np.load(folder_path + f"TRNC_{Vs}_{Ls:02}.npy")
+    
+    print(" - receiver X is ")
+    print(receiver2[1])
+    print(" - receiver Y is ")
+    print(receiver2[0])
+    
+    for indx, nome in enumerate(all_files):
+        print(" - file name is ",nome)
+        data_dic = np.load(folder_path + nome , allow_pickle=True).item()
+        
+        step = data_dic['step_size']
+        print(" - step is ", step)
+        new_bond = data_dic['bond_size'] # bonds[indx] #
+        print(" - bond is ", new_bond)
+        # bond_set[indx] = bond #.append(bond)
+        
+        # new_energies = data_dic['new_energy'][-1]
+        # print(" - size of new energies ", len(new_energies))
+        new_energy = data_dic['new_energy'][-1]
+        print(" - new energy is: ")
+        print(new_energy)
+        old_energy = data_dic['new_energy'][0]
+        print(" - old energy is: ")
+        print(old_energy)
+        
+        receiver = np.insert(receiver, [1], [[new_energy],[new_bond]], axis=1)
+        receiver2 = np.insert(receiver2, [1], [[old_energy],[new_bond]], axis=1)
+    
+    
+    print(" - receiver X is ")
+    print(receiver2[1])
+    print(" - receiver Y is ")
+    print(receiver2[0])
+    
+    arcivo = open(f'Superposition_run/raw_data/test/NXET_{Vs}_{Ls:02}.npy', 'wb') #NXET: nexus energy truncation.   #NBTS: new best truncated state.   #BTGS: best truncated ground state.
+    # np.save(arcivo, np.array([nexus_energy, bonds]))
+    np.save(arcivo, np.array(receiver))
+    arcivo.close()
+    print(f"New Bond-Search Data file saved")
+    print("")
+    arcivo = open(f'Superposition_run/raw_data/test/TRNC_{Vs}_{Ls:02}.npy', 'wb') #NXET: nexus energy truncation.   #NBTS: new best truncated state.   #BTGS: best truncated ground state.
+    # np.save(arcivo, np.array([nexus_energy, bonds]))
+    np.save(arcivo, np.array(receiver2))
+    arcivo.close()
+    print(f"Old Bond Data file saved")
+    print("")
+    
+     

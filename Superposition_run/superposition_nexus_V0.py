@@ -142,7 +142,7 @@ if False: ######################################################################
     print(f"A convergence plot saved")
     print("")    
 
-if True: ###################################################################### creating the data for each array job in a dict format
+if False: ###################################################################### creating the data for each array job in a dict format
     mid_plot = True
     save_data = True
     
@@ -243,6 +243,195 @@ if True: ###################################################################### 
     
     if save_data:       
         arcivo = open(f'Superposition_run/raw_data/test/DATA_{Vs}_{Ls:02}_{array_number:02}.npy', 'wb')
+        np.save(arcivo, array_dict)
+        arcivo.close()
+        
+        print(f"- Data files are saved")
+        print("") 
+        
+        
+if False: ###################################################################### Same as above but for big sizes - creating the data for each array job in a dict format
+    mid_plot = True
+    save_data = False
+    
+    Ls = 20
+    Vs, Js = 0.1, 1.0 
+    ed_energy = np.load('Superposition_run/raw_data/Ground_State_Energy/' + f"EDGS_{Vs}_{Ls:02}.npy")
+    
+    
+    # num_pnts = 23
+    # b_step = int( 10 * np.round((maxdim/num_pnts)/10))
+    
+    step = 1000
+    
+    maxdim = 10000
+    MAXDIM = sp.special.binom(Ls, Ls//2)    
+     
+    # b_step = 1400
+    # bonds = np.array( [1] + [100, 400, 800] + [b for b in range(b_step, int(maxdim), b_step)] + [int(maxdim)] , dtype=np.int64) # B should come here
+    bonds = np.array( [1, 500, 1000, 2000] , dtype=np.int64) # new way of doing after discussion with Adam.
+    
+    print(f"- length of bonds is: {np.size(bonds)}")
+    print(f"- Array {array_number}th bond is {bonds[array_number]}")
+    
+    t_0 = tt.time()
+    HF_E, HF_U = hf.new_hart_fock_optimization([Vs, Js], Ls, max_iters=hf_iters, PBC=False, start_point=1.e-14)
+    print(f"- Hartree Fock Optimization Time:", tt.time() - t_0,"(s)")
+    
+    
+    array_dict = {}
+    array_dict['step_size'] = step
+    COUNTS = np.zeros((Ls//2+1), dtype=np.float16)
+
+    t_2 = tt.time()
+    bond = bonds[array_number]
+    array_dict['bond_size'] = bond
+    
+    t_3 = tt.time()
+    nexus_energy, nexus_basis, nexus_amps = hf.nexus_optimization([Vs, Js], Ls, bond, HF_E, HF_U, size_step = step, PBC=False, max_iters = hf_iters, basis_len = maxdim)
+    print("- - Time for nexus run:", tt.time()-t_3)
+    # print("- - energies for nexus 2 run:", nexus_energy)
+    # print("- - converged energies for nexus 2 run:", np.abs(nexus_energy-ed_energy)/Ls)
+    print("")
+    array_dict['new_energy'] = nexus_energy
+    array_dict['new_basis'] = nexus_basis
+    array_dict['new_amps'] = nexus_amps
+        # nexus_energy = np.abs(np.array(nexus_energy) - ed_energy[L])/L
+        # new_data[indx] = nexus_energy[-1]
+    print("- - TESTING if bond is: ",len(nexus_basis))
+    
+    array_dict['old_energy'] = nexus_energy[0] #(Es[0] - ed_energy)/Ls
+    
+    if False:
+        """
+        **IMPROVEMENT**:
+            (20250414) this part went down to avoid making the full matrix and just using submatrix of it. Or just call a saved matrix for old method
+            (20250427) The first nexus energy is actually the blind energy, so it's not necessary to calculate the blind energy again. 
+                        I don't get to save the full amps and basis though!
+        """
+    
+        # super_ham = np.load(f'Superposition_run/raw_data/Full_Matrix/FulMat__{Vs}_{Ls:02}.npy')
+        # super_basis = hf.ordered_basis(Ls, HF_E)
+        
+        # t_4 = tt.time()
+        # Es, Us = np.linalg.eigh(super_ham[:bond,:bond])
+        # print(f"- - Eigenvalue Time (old): ", tt.time() - t_4,"(s) for ", bond,",",bond/maxdim)
+        # print("")
+        
+        array_dict['old_energy'] = nexus_energy[0] #(Es[0] - ed_energy)/Ls
+    
+        if bond == MAXDIM:
+            # array_dict['full_amps'] = Us[:,0] 
+            # array_dict['full_basis'] = super_basis 
+            array_dict['full_amps'] = nexus_amps 
+            array_dict['full_basis'] = nexus_basis 
+
+
+    dists, counts = np.unique(hf.basis_distance(nexus_basis, Ls),return_counts=True)
+    dicd = dict(zip(dists,counts))
+    for n in dists:
+        COUNTS[n] = dicd[n]
+
+    print(f"- - counts for bond {bond} is {COUNTS}")
+    # print(f"- - order of amplitudes for bond {bond} is {np.floor(np.log10(np.abs(nexus_amps)))}")
+    print("")
+
+    if mid_plot:
+        mid_energy = np.abs(np.array(nexus_energy) - ed_energy)/Ls
+        plt.plot(mid_energy, marker='o', label=f"M = {bond}")
+        blnd_energy = np.abs(nexus_energy[0] - ed_energy)/Ls
+        plt.plot(np.full(np.size(mid_energy), blnd_energy), marker='d', label=f" blind")
+        plt.yscale('log')
+        plt.legend(loc='best', fontsize='small', markerscale=0.9)
+        plt.title(f"L = {Ls}, V={Vs} & |m|={step}")
+        plt.savefig(f"Superposition_run/plots/mid_plots/_new_mid_converge_V{Vs}_L{Ls}_B{bond:04}_A{array_number:02}.pdf", bbox_inches = 'tight')
+    
+    print(f"- Full Run {array_number} Time: ", tt.time() - t_2,"(s)")
+    print("")
+    
+    print("- Size of full new data:", len(nexus_energy))
+    print("")
+    
+    if save_data:       
+        arcivo = open(f'Superposition_run/raw_data/test/DATA_{Vs}_{Ls:02}_{array_number:02}.npy', 'wb')
+        np.save(arcivo, array_dict)
+        arcivo.close()
+        
+        print(f"- Data files are saved")
+        print("") 
+        
+        
+if True: ###################################################################### Big system sizes but low bond and step (after discussing with Adam & Molly)
+    mid_plot = True
+    save_data = True
+    
+    Vs, Js = 0.1, 1.0 
+    
+    maxdim = 20_000
+
+    step = 1000
+     
+    sizes = [18, 20]
+    bonds = [1, 250, 500, 1000, 2000]
+    
+    input_list = [(a,b) for a in sizes for b in bonds]
+    
+    Ls, bond = input_list[array_number]
+    
+    MAXDIM = sp.special.binom(Ls, Ls//2)    
+    
+    print(f"- Array {array_number}th size and bond are {input_list[array_number][0]}, {input_list[array_number][1]}")
+    
+    t_0 = tt.time()
+    HF_E, HF_U = hf.new_hart_fock_optimization([Vs, Js], Ls, max_iters=hf_iters, PBC=False, start_point=1.e-6)
+    print(f"- Hartree Fock Optimization Time:", tt.time() - t_0,"(s)")    
+    
+    
+    array_dict = {}
+    array_dict['bond_size'] = bond
+    array_dict['step_size'] = step
+    
+    t_3 = tt.time()
+    nexus_energy, nexus_basis, nexus_amps = hf.nexus_optimization([Vs, Js], Ls, bond, HF_E, HF_U, size_step = step, PBC=False, max_iters = hf_iters, basis_len = maxdim)
+    print("- - Time for nexus run:", tt.time()-t_3)
+    print("")
+
+    array_dict['new_energy'] = nexus_energy
+    array_dict['new_basis'] = nexus_basis
+    array_dict['new_amps'] = nexus_amps
+    array_dict['old_energy'] = nexus_energy[0] #(Es[0] - ed_energy)/Ls
+
+    print("- - TESTING if bond is: ",len(nexus_basis))
+    
+    
+    dists, counts = np.unique(hf.basis_distance(nexus_basis, Ls),return_counts=True)
+    dicd = dict(zip(dists,counts))
+    COUNTS = np.zeros((Ls//2+1), dtype=np.float16)
+    for n in dists:
+        COUNTS[n] = dicd[n]
+
+    print(f"- - counts for bond {bond} is {COUNTS}")
+    print("")
+
+    if mid_plot:
+        ed_energy = np.load('Superposition_run/raw_data/Ground_State_Energy/' + f"EDGS_{Vs}_{Ls:02}.npy")
+        
+        mid_energy = np.abs(np.array(nexus_energy) - ed_energy)/Ls
+        plt.plot(mid_energy, marker='o', label=f"M = {bond}")
+        blnd_energy = np.abs(nexus_energy[0] - ed_energy)/Ls
+        plt.plot(np.full(np.size(mid_energy), blnd_energy), marker='d', label=f" blind")
+        plt.yscale('log')
+        plt.legend(loc='best', fontsize='small', markerscale=0.9)
+        plt.title(f"L = {Ls}, V={Vs} & |m|={step}")
+        # plt.savefig(f"Superposition_run/plots/mid_plots/_new_mid_converge_V{Vs}_L{Ls}_B{bond:04}_A{array_number:02}.pdf", bbox_inches = 'tight')
+        plt.savefig(f"Superposition_run/plots/mid_plots/_new_mid_converge_V{Vs}_L{Ls}_B{bond:04}.pdf", bbox_inches = 'tight')
+    
+    
+    print("- Size of full new data:", len(nexus_energy))
+    print("")
+    
+    if save_data:       
+        arcivo = open(f'Superposition_run/raw_data/test/test_data_{Vs}_{Ls:02}_{array_number:02}.npy', 'wb')
         np.save(arcivo, array_dict)
         arcivo.close()
         

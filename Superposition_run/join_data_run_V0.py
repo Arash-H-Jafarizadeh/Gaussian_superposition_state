@@ -173,13 +173,13 @@ if True: #######################################################################
     
     folder_path = 'Superposition_run/raw_data/test/'
     
-    Vs, Ls = 0.3, 16
+    Vs, Ls = 0.1, 30
     # all_files =  sorted( glob.glob('DATA'+'*0.2'+'*08'+'*.npy', root_dir=folder_path) )
     all_files =  sorted( glob.glob(f'DATA_{Vs}_{Ls:02}'+'*.npy', root_dir=folder_path) )
     print(all_files)
     print("")
     
-    maxdim = int(sp.special.binom(Ls, Ls//2))    
+    maxdim = 16000 #int(sp.special.binom(Ls, Ls//2))    
     step = 0 
     # bonds = np.array( [1] + [b for b in range(150, int(maxdim), 150)] + [int(maxdim)] )#np.linspace(1, maxdim, num_datas, dtype=np.int64)
     # print("size of bonds ", len(bonds))
@@ -240,18 +240,6 @@ if True: #######################################################################
         new_basis_set.append(data_dic['new_basis'])
         new_amps_set.append(data_dic['new_amps'])
         
-        if 'full_basis' in data_dic.keys(): 
-            all_base += data_dic['full_basis']
-            print(f"  - - all base set for L={Ls} exists and it is:")
-            # print(all_base)
-        
-        if 'full_amps' in data_dic.keys(): 
-            all_amps += data_dic['full_amps']
-            print(f"  - - all amps for L={Ls} exists and it is:")
-            # print(all_amps)
-        
-        # ######### for now I will use the old amplitudes from the old data a.k.a. raw_data/Amplitudes/...
-        # old_amps_set.append(data_dic['old_amps'])
         
         if mid_plot:
             mid_energy = np.abs(np.array(new_energies) - ed_energy)/Ls
@@ -283,17 +271,23 @@ if True: #######################################################################
     print(f"Best Amplitude Set file saved")
     print("")
     
-    arcivo = open(f'Superposition_run/raw_data/test/BSAM_{Vs}_{Ls:02}.npy', 'wb') #AMBL: amplitudes blind list
-    np.save(arcivo, np.asanyarray([all_amps, all_base], dtype=object))
-    arcivo.close()
-    print(f"ALL Basis & Amplitudes file saved")
-    print("")
     
-    # arcivo = open(f'Superposition_run/raw_data/test/AMBL_{Vs}_{Ls:02}.npy', 'wb') #AMBL: amplitudes blind list
-    # np.save(arcivo, old_amps_set)
-    # arcivo.close()
-    # print(f"Best Basis Set file saved")
-    # print("")
+    # if 'full_amps' in data_dic.keys(): 
+    if 'full_basis' in data_dic.keys() and 'full_amps' in data_dic.keys(): 
+        
+        all_base += data_dic['full_basis']
+        print(f"  - - all base set for L={Ls} exists and it is:")
+        # print(all_base)
+
+        all_amps += data_dic['full_amps']
+        print(f"  - - all amps for L={Ls} exists and it is:")
+        # print(all_amps)
+
+        arcivo = open(f'Superposition_run/raw_data/test/BSAM_{Vs}_{Ls:02}.npy', 'wb') #AMBL: amplitudes blind list
+        np.save(arcivo, np.asanyarray([all_amps, all_base], dtype=object))
+        arcivo.close()
+        print(f"ALL Basis & Amplitudes file saved")
+        print("")
     
     
     
