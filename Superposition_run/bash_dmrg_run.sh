@@ -1,13 +1,14 @@
 #!/bin/bash
 
 #SBATCH --partition=defq
-#SBATCH --array=0-6
+#SBATCH --array=0-5%3
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=20g
 #SBATCH --time=0-10:60:00
-#SBATCH --output=Superposition_run/output/Dash_DMRG_Run_%a.out
+#SBATCH --job-name=DMRG_34_44
+#SBATCH --output=Superposition_run/output/DMRG_Run_%x_%a.out
 ## #SBATCH --exclude=comp044
 
 	

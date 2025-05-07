@@ -439,6 +439,7 @@ def cmat_2d(inputlist, *dims, **kw):
     
 #     return C
 
+
 def FullEnergy_PC_2d(C, *physical, **kw):
     
     PBC = kw['PBC'] if 'PBC' in kw.keys() else True

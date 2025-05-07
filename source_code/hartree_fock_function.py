@@ -1,5 +1,7 @@
 import numpy as np  # type: ignore
 import scipy as sp # type: ignore
+import time as tt # type: ignore
+
 
 ####################################################################################################################################################################################################################
 ########################################################################################################## 1D functions ##########################################################################################################
@@ -222,20 +224,23 @@ def ordered_basis_distance(L, mode_energis, **kwargs):
     
     basis_N = []
     order_set = []
-    for n in range(2**(L//2)-1,2**L - 2**(L//2) +1):
+    for n in range(2**(L//2)-1, 2**L - 2**(L//2) +1):
         
-        bin_state = np.array([int(i) for i in np.binary_repr(n, width=L)])
+        bin_state = np.array([int(i) for i in np.binary_repr(n, width=L)])[::-1]
         
         if sum(bin_state) == N:
             basis_N.append(n)
             order_set.append( np.array(bin_state) @ np.array(mode_energis) )
+
+        if basis_len is not None and len(basis_N) >= basis_len:
+            break
     
     order = np.argsort(order_set) 
     basis_set = np.array(basis_N)[order.astype(int)]
     
     distance_array = [ [] for _ in range(L+1)]
-    b0 = basis_set[0]
     for b in basis_set:
+        b0 = basis_set[0]
         m = np.bitwise_and(b0, b)
         bin_state = np.array([int(i) for i in np.binary_repr(m, width=L)])
         distance = int(L/2 - np.sum(bin_state))
@@ -244,7 +249,7 @@ def ordered_basis_distance(L, mode_energis, **kwargs):
         
     output = np.concatenate(distance_array).astype(int)
     
-    return( output[0:basis_len] )  
+    return(output) #( output[0:basis_len] )  
 
                 
 
@@ -293,7 +298,7 @@ def hart_fock_superposition(physical, L, **kws):
     return(new_ham, super_basis) #new_order)
 
 
-######################################################################################## new algorithm for superposition optimization (needs improvement - 20250408)
+########################################################################################################## new algorithm for superposition optimization (needs improvement - 20250408)
 
 def new_based_ham(physical, L, bond_list, u_mat, **kwargs):
     
@@ -380,6 +385,7 @@ def nexus_optimization(physical, L, bond_size, hf_E, hf_U, **kws):
     
     # bond_list = ordered_basis(L, hf_E, **kws)
     bond_list = ordered_basis_distance(L, hf_E, **kws)
+    print(" *** basis creations time and size", len(bond_list))
     
     # basis = bond_list[:bond_size + size_step]
     basis = bond_list[:bond_size]

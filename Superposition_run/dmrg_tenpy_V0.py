@@ -31,9 +31,9 @@ print(f" ***** job {job_number} started ***** ")
 print("")
 
 error_in_energy = 1.e-18
-max_bond = 1000
+max_bond = 1500
 
-sizes = [40, 50] #[20, 22, 24, 26, 28, 30]
+sizes = [34, 44] #[20, 22, 24, 26, 28, 30]
 VS = [0.1, 0.2, 0.3] #[0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0] 
     
 input = []
